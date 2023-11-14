@@ -8,7 +8,7 @@ redirect_from:
   - /about.html
 ---
 
-Hey, I'm Kia! I'm a DPhil student in the statistics department at the University of Oxford and part of the StatML CDT. My research interests relate broadly to the following areas and questions:
+Hey, I'm Kia! I'm a DPhil student in the Department of Statistics at the University of Oxford and part of the StatML CDT. My research interests relate broadly to the following areas and questions:
 
 - Scalable, reliable deep learning:
     - How can we reliably and efficiently quantify the uncertainty in neural networks predictions?
@@ -21,7 +21,7 @@ Hey, I'm Kia! I'm a DPhil student in the statistics department at the University
     - How can we learn in situations where obtaining new data is expensive (active learning, semi-supervised learning)?
 
 
-Currently, I'm working on deep long-tailed classification with François Caron. Previously, I worked on analyzing the quality of variational approximations to Bayesian neural networks with Mark van der Wilk as part of my Master's at Imperial College London. Besides my interests in machine learning, I'm also interested in:
+Currently, I'm working on deep long-tailed classification with [François Caron](https://www.stats.ox.ac.uk/~caron/). Previously, I worked on analyzing the quality of variational approximations to Bayesian neural networks with [Mark van der Wilk](https://mvdw.uk/) as part of my Master's at Imperial College London. Besides my interests in machine learning, I'm also interested in:
 
 - Long-distance cycling
 - MMA (Brazilian Jiu Jitsu)
