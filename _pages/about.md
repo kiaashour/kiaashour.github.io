@@ -11,7 +11,7 @@ redirect_from:
 Hey, I'm Kia! I'm a DPhil student in the Department of Statistics at the University of Oxford and part of the StatML CDT. My research interests relate broadly to the following areas and questions:
 
 - Scalable, reliable deep learning:
-    - How can we reliably and efficiently quantify the uncertainty in neural networks predictions?
+    - How can we reliably and efficiently quantify the uncertainty in neural network predictions?
 
 - Generalization under distribution shifts:
     - How can we train models that generalize well in the presence of distribution shifts?
