@@ -8,7 +8,7 @@ redirect_from:
   - /about.html
 ---
 
-Hey, I'm Kia! I'm a DPhil student in the Department of Statistics at the University of Oxford, working with François Caron and Tom Rainforth. My research interests relate broadly to the following areas and questions:
+Hey, I'm Kia! I'm a DPhil student in the Department of Statistics at the University of Oxford, working with [François Caron](https://www.stats.ox.ac.uk/~caron/) and [Tom Rainforth](https://www.robots.ox.ac.uk/~twgr/). My research interests relate broadly to the following areas and questions:
 
 - Scalable, reliable deep learning:
     - How can we reliably and efficiently quantify the uncertainty in neural network predictions?
