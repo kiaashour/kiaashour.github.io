@@ -25,7 +25,7 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-I'm a third year DPhil student in the Department of Statistics at the University of Oxford, supervised by [Tom Rainforth](https://www.robots.ox.ac.uk/~twgr/) and [François Caron](https://www.stats.ox.ac.uk/people/francois-caron). My research aims to develop more robust and effective sequential decision-making methods for real-world applications, with a particular focus on active learning. I am also interested in improving the robustness of frequentist uncertainty quantification methods (e.g. conformal prediction) under common challenges such as model misspecification and distributional shifts, in order to broaden their applicability to more common real-world scenarios.
+I'm a third year DPhil student in the Department of Statistics at the University of Oxford, supervised by [Tom Rainforth](https://www.robots.ox.ac.uk/~twgr/) and [François Caron](https://www.stats.ox.ac.uk/people/francois-caron). My research aims to develop more robust and effective sequential decision-making methods for real-world applications, with a particular focus on active learning. I am also interested in improving the robustness of frequentist uncertainty quantification methods (e.g. conformal prediction) under common challenges such as model misspecification and distributional shifts.
 
 
 Before starting my PhD, I completed my MSc in Artificial Intelligence at Imperial College London where I was awarded a [Google DeepMind Scholarship](https://www.imperial.ac.uk/computing/prospective-students/deepmind-scholars/). For my dissertation, I analyzed the quality of Bayesian neural network approximations under the supervision of [Mark van der Wilk](https://mvdw.uk/).
