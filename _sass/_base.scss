@@ -702,6 +702,8 @@ footer.sticky-bottom {
 
 .publications {
   margin-top: 2rem;
+  /* Increase overall text size for publications */
+  font-size: 1.125rem; // ~18px if root is 16px
 
   h1 {
     color: var(--global-theme-color);
@@ -734,9 +736,6 @@ footer.sticky-bottom {
 
     li {
       margin-bottom: 1rem;
-
-      .preview {
-      }
 
       .abbr {
         margin-bottom: 0.5rem;
