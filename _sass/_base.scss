@@ -199,6 +199,10 @@ ul.task-list input[type="checkbox"] {
     margin-bottom: 5px;
     margin-top: 5px;
     font-family: monospace;
+  /* Wrap long strings like emails to avoid overflow under the image */
+  white-space: normal;
+  overflow-wrap: anywhere; /* modern */
+  word-break: break-word;  /* fallback */
 
     p {
       display: inline-block;
