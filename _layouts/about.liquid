@@ -69,6 +69,13 @@ layout: default
       <div class="social">
         <div class="contact-icons">{% include social.liquid %}</div>
 
+        <!-- Visitor globe widget below social icons -->
+  <div class="map-widget" style="max-width: 220px; width: 100%; margin: 12px auto;">
+          <div style="width: 100%; aspect-ratio: 1 / 1;">
+            <script type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=ICoSOKPf2xhY5Ec2PXwuna5n9Q2TI5sg_Hzlhl2Xk7A"></script>
+          </div>
+        </div>
+
         <div class="contact-note">{{ site.contact_note }}</div>
       </div>
     {% endif %}
