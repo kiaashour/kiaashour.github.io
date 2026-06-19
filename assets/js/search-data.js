@@ -11,7 +11,7 @@ ninja.data = [{
     },
   },{id: "nav-blog",
           title: "Blog",
-          description: "Masked Language Flow Models",
+          description: "Research notes and articles by Kia Ashouritaklimi",
           section: "Navigation",
           handler: () => {
             window.location.href = "/blog/";
@@ -23,7 +23,18 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/Publications/";
           },
-        },{id: "post-a-post-with-plotly-js",
+        },{id: "post-masked-language-flow-models",
+        
+          title: "Masked Language Flow Models",
+        
+        description: "A continuous-flow language model that combines coupled denoising with flexible masked-token conditioning.",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/masked-language-flow-models/";
+          
+        },
+      },{id: "post-a-post-with-plotly-js",
         
           title: "a post with plotly.js",
         
