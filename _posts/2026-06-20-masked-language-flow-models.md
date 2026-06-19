@@ -1,0 +1,1820 @@
+---
+layout: default
+title: Masked Language Flow Models
+date: 2026-06-20 00:00:00 +0100
+description: A continuous-flow language model that combines coupled denoising with flexible masked-token conditioning.
+permalink: /blog/masked-language-flow-models/
+paper_entry: true
+related_posts: false
+---
+
+{::nomarkdown}
+
+<style>
+.mlfm-paper{--teal:#0e4c5b;--orange:#ed8018;max-width:850px;margin:0 auto 4rem;font-family:Georgia,"Times New Roman",serif;font-size:1.02rem;line-height:1.55;color:var(--global-text-color)}
+.mlfm-paper p{margin:.8rem 0}.paper-header{margin:1.5rem 0 2.2rem}.paper-title{margin:0;color:var(--teal);font:700 2.35rem/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.paper-rule{height:2px;margin:1rem 0 1.25rem;background:var(--teal)}
+.paper-authors{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.paper-affiliation{color:var(--teal)}.paper-actions{display:flex;gap:.6rem;margin:1rem 0}.paper-actions a{border:1px solid var(--teal);border-radius:4px;color:var(--teal);padding:.35rem .7rem;text-decoration:none}.paper-actions a:hover{background:var(--teal);color:#fff}
+.paper-abstract{margin-top:1rem;padding:1rem 1.25rem;border-left:4px solid var(--teal);background:rgba(14,76,91,.06)}.paper-abstract .abstract-label{float:left;margin-right:.8rem;color:var(--teal);font:700 1rem/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.paper-abstract p{margin:0 0 .75rem}.paper-abstract p:last-child{margin-bottom:0}
+.mlfm-paper>h1,.mlfm-paper>h2,.mlfm-paper>h3,.mlfm-paper>h4{scroll-margin-top:5rem;color:var(--teal);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:700}.mlfm-paper>h1{margin:2.8rem 0 1rem;padding-bottom:.3rem;border-bottom:1px solid rgba(14,76,91,.25);font-size:1.65rem}.mlfm-paper>h2{margin:2rem 0 .8rem;font-size:1.3rem}.mlfm-paper>h3{margin:1.6rem 0 .7rem;font-size:1.1rem}.mlfm-paper>h4{margin:1.3rem 0 .5rem;font-size:1rem}.secno{margin-right:.45rem}
+.math.display{display:block;max-width:100%;margin:1.1rem 0;overflow-x:auto;overflow-y:hidden;text-align:center}.mlfm-paper a{color:var(--teal)}.mlfm-paper figure{margin:1.8rem 0}.mlfm-paper figcaption,.mlfm-paper caption{font-size:.9rem;line-height:1.4;text-align:center}.mlfm-paper img{max-width:100%;height:auto}
+.table-scroll{margin:1.5rem 0;overflow-x:auto}.mlfm-paper table{width:100%;border-collapse:collapse;font-size:.92rem}.mlfm-paper th,.mlfm-paper td{padding:.5rem .65rem;border-bottom:1px solid var(--global-divider-color);text-align:center}.mlfm-paper th:first-child,.mlfm-paper td:first-child{text-align:left}.mlfm-paper thead{border-top:2px solid var(--global-text-color);border-bottom:1px solid var(--global-text-color)}.mlfm-paper tbody{border-bottom:2px solid var(--global-text-color)}.mlfm-paper tr.highlight{background:rgba(14,76,91,.08);font-weight:700}
+.ablation-figure{padding:1rem;border:1px solid var(--global-divider-color)}.figure-group h4{text-align:center}.figure-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.algorithm{margin:1.6rem 0;padding:.8rem 1rem;border-top:2px solid var(--global-text-color);border-bottom:2px solid var(--global-text-color);font-size:.94rem}.algorithm-title{padding-bottom:.55rem;border-bottom:1px solid var(--global-divider-color);font-weight:700}.algorithm-title span{margin-right:.6rem;color:var(--teal)}.algorithm-input{font-size:.9rem}.algorithm ol{margin:.35rem 0;padding-left:1.6rem}.algorithm ol ol{list-style:lower-alpha}.algorithm li{margin:.25rem 0}
+.proposition{margin:1.3rem 0;padding:1rem 1.2rem;border-left:4px solid rgba(14,76,91,.55);background:rgba(14,76,91,.06)}.proof{margin:1rem 0}.genbox{margin:1rem 0;padding:1rem 1.2rem;border:1px solid var(--global-divider-color);border-radius:8px;background:rgba(14,76,91,.05)}.gen-title{font:700 1.15rem/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.gen-label{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.genbox hr{border:0;border-top:1px solid var(--global-divider-color)}
+.appendix-toc{padding:1rem 1.2rem;border-left:4px solid var(--teal);background:rgba(14,76,91,.05)}.appendix-toc ol{margin:0;padding:0;list-style:none}.appendix-toc li{margin:.4rem 0}.appendix-toc span{display:inline-block;width:2rem;font-weight:700}.references{font-size:.85rem;line-height:1.4}.references p,.csl-entry{margin:0 0 .55rem;padding-left:1.4rem;text-indent:-1.4rem}.footnotes{margin-top:2rem;font-size:.85rem}
+html[data-theme="dark"] .mlfm-paper{--teal:#79bdca;--orange:#ffa044}.mlfm-paper code{overflow-wrap:anywhere}
+@media(max-width:700px){.mlfm-paper{font-size:.96rem}.paper-title{font-size:1.9rem}.figure-row{grid-template-columns:1fr}.paper-affiliation{line-height:1.5}.algorithm{margin-left:-.35rem;margin-right:-.35rem;padding:.7rem}.mlfm-paper th,.mlfm-paper td{padding:.4rem}}
+@media print{header.navbar,footer,.paper-actions{display:none!important}.mlfm-paper{max-width:none;color:#000;font-size:10.5pt}.mlfm-paper h1,.mlfm-paper h2,.mlfm-paper h3{break-after:avoid}.algorithm,figure,table{break-inside:avoid}}
+</style>
+
+<article class="mlfm-paper">
+
+<header class="paper-header">
+  <h1 class="paper-title">Masked Language Flow Models</h1>
+  <div class="paper-rule"></div>
+  <p class="paper-authors">Iskander Azangulov, Kianoosh Ashouritaklimi<sup>★</sup>, Leo Zhang<sup>★</sup>, Simon Vary, Patrick Rebeschini</p>
+  <p class="paper-affiliation">Department of Statistics, University of Oxford &nbsp; · &nbsp; <sup>★</sup>Equal contribution</p>
+  <nav class="paper-actions" aria-label="Paper links">
+    <a href="https://github.com/imbirik/mlfm">Code</a>
+  </nav>
+  <div class="paper-abstract"><span class="abstract-label">Abstract</span><p><em>Masked Diffusion Models</em> (MDMs) promise fast, parallel
+language generation, but their reverse transition factorises across
+token positions—an approximation that breaks down in the few-step
+sampling regime where parallel generation ought to provide the greatest
+efficiency gains. <em>Flow Language Models</em> (FLMs) sidestep this
+limitation by learning a continuous flow that transports noise toward
+clean sequences represented in Euclidean space, inducing a flow map that
+can be distilled for single-step generation. However, this makes complex
+tasks requiring multi-step reasoning problematic for FLMs, as FLMs are
+forced to decode every token during generation. To address this, we
+introduce <strong>Masked Language Flow Models (MLFMs)</strong>, which
+incorporate masking into FLMs using a continuous stochastic interpolant
+to bridge partially masked and clean sequences. This design enables
+conditional generation via continuous flows and allows pretrained MDMs
+to be converted into MLFMs through a simple, lightweight adaptation.
+Leveraging this flexibility, we propose a novel sampler that alternates
+continuous denoising with the discrete unmasking of confident tokens to
+better support multi-step reasoning. We evaluate our approach on GSM8K
+and MT-Bench and find, for the first time, that flow-based language
+models can be scaled to solve downstream reasoning and
+instruction-following tasks.</p>
+<p>Code is available at: <a
+href="https://github.com/imbirik/mlfm">github.com/imbirik/mlfm</a>.</p></div>
+</header>
+
+<h1 id="introduction"><span class="secno">1</span> Introduction</h1>
+<p><em>Autoregressive Models</em> (ARMs) have driven much of the recent
+progress in language modelling by framing language generation as
+next-token prediction <span class="citation"
+data-cites="brown2020languagemodelsfewshotlearners">(Brown et al.
+2020)</span>. However, their left-to-right factorisation of the joint
+distribution makes this process inherently sequential, as each token
+must be conditioned on all preceding ones. Consequently, inference costs
+scale linearly with output length, creating a bottleneck for long
+sequences. This limitation has motivated growing interest in <em>Masked
+Diffusion Models</em> (MDMs)  <span class="citation"
+data-cites="austin2021structured campbell2022continuous lou2024discreteratios shi2024simplified sahoo2024simple">(Austin
+et al. 2021; Campbell et al. 2022; Lou, Meng, and Ermon 2024; Shi et al.
+2024; Sahoo et al. 2024)</span> which replace sequential generation with
+the parallel decoding of masked tokens.</p>
+<p>Although MDMs have demonstrated strong performance across language
+modelling and downstream tasks <span class="citation"
+data-cites="nie2025scalingmdm nie2025lldm">(Nie, Zhu, Du, et al. 2025;
+Nie, Zhu, You, et al. 2025)</span>, they typically rely on a factorised
+reverse transition across masked positions, making inference tractable
+in the combinatorially large discrete state space. This approximation is
+accurate in the infinitesimal-step limit but becomes highly restrictive
+in the few-step regime <span class="citation"
+data-cites="deschenaux2024beyond">(Deschenaux and Gulcehre 2024)</span>,
+where each step must independently decode many masked tokens at
+once—ignoring the dependencies amongst them. Consequently, the very
+regimes where parallel decoding promises the greatest speedups <span
+class="citation"
+data-cites="dieleman2023language zheng2024masked">(Dieleman 2023; K.
+Zheng et al. 2024)</span> are precisely those where this independence
+assumption most severely compromises generation quality.</p>
+<p><em>Flow Language Models</em> (FLMs) <span class="citation"
+data-cites="roos2026categoricalflowmaps lee2026flowmaplanguagemodels potaptchik2026discreteflowmaps davis2026scalingcategoricalflowmaps chen2026langflow hu2026elfembeddedlanguageflows">(Roos
+et al. 2026; Lee et al. 2026; Potaptchik et al. 2026; Davis et al. 2026;
+Chen et al. 2026; K. Hu et al. 2026)</span> address this issue by moving
+from a discrete state space into a continuous one. Specifically, FLMs
+learn a flow <span class="citation"
+data-cites="song2020score lipman2022flow albergo2023stochastic">(Song et
+al. 2021; Lipman et al. 2023; Albergo, Boffi, and Vanden-Eijnden
+2025)</span> transporting noise to continuous embeddings of token
+sequences, allowing latent states to evolve jointly across token
+positions. A significant advantage of FLMs is that they also induce a
+flow map which can be distilled to support few-step and even one-step
+generation. However, collapsing generation to a single flow map may be
+too restrictive for language tasks that require multi-step reasoning.
+Indeed, many language tasks benefit from iterative generation where
+partially completed intermediate states provide context for subsequent
+refinements <span class="citation"
+data-cites="ghazvininejad-etal-2019-mask nye2021show wei2022chain">(Ghazvininejad
+et al. 2019; Nye et al. 2021; Wei et al. 2022)</span>.</p>
+<p>To address this limitation, we propose <strong>Masked Language Flow
+Models (MLFMs)</strong>. MLFMs incorporate masking from MDMs into FLMs
+by using a Brownian bridge as a stochastic interpolant connecting
+embedded partially masked sequences with embedded clean sequences. As a
+result, MLFMs retain the exact any-position conditioning structure of
+MDMs while learning a coupled continuous flow for generating clean
+tokens at masked positions. Moreover, this special structure of MLFMs
+gives us a natural strategy for training and inference. For training, we
+propose adapting pretrained MDMs into MLFMs: this is possible because,
+at the boundary of the Brownian bridge, the stochastic interpolant
+reduces to an embedded partially masked sequence, matching the setup of
+MDMs. This allows us to warm-start MLFM training from large pretrained
+MDMs, greatly reducing the compute required to train our models.</p>
+<p>For inference, we leverage the flexibility MLFMs provide through
+any-position conditional generation. Specifically, we introduce a novel
+sampling scheme that combines a new approach to classifier-free guidance
+with the online promotion of confident tokens. Under this guidance
+method, clean tokens are noised in the reference velocity to isolate
+their contribution. Concurrently, if the posterior mode at a specific
+token position reaches a probability of at least <span
+class="math inline">\(1-\epsilon\)</span>, we immediately commit to that
+token and substitute in its clean embedding. By promoting these resolved
+tokens early, they instantly become useful context for subsequent
+generation steps, rather than remaining noisy until the final step.</p>
+<p>Empirically, we adapt a pretrained MDM with 1028M parameters from
+<span class="citation" data-cites="nie2025scalingmdm">(Nie, Zhu, Du, et
+al. 2025)</span> into an MLFM and evaluate the resulting model on GSM8K
+<span class="citation" data-cites="cobbe2021gsm8k">(Cobbe et al.
+2021)</span> and MT-Bench <span class="citation"
+data-cites="zheng2023judging">(L. Zheng et al. 2023)</span>. MLFM
+improves over SMDM and similarly sized AR baselines on MT-Bench and
+obtains encouraging performance on GSM8K, demonstrating its ability to
+handle both instruction-following and reasoning tasks. Across these
+benchmarks, we also find that our novel sampling scheme provides
+significant improvements. To the best of our knowledge, this is the
+first time that flow-based language models have been scaled to
+downstream reasoning and instruction-following tasks.</p>
+<h1 id="background"><span class="secno">2</span> Background</h1>
+<p>In this section, we provide an overview of the background required
+for our approach. Section <a href="#sub:mdm" data-reference-type="ref"
+data-reference="sub:mdm">2.1</a> discusses Masked Diffusion Models and
+Section <a href="#sub:flm" data-reference-type="ref"
+data-reference="sub:flm">2.2</a> discusses Flow Language Models, in
+particular LangFlow <span class="citation"
+data-cites="chen2026langflow">(Chen et al. 2026)</span> which we take as
+the basis for our approach.</p>
+<h4 id="notation.">Notation.</h4>
+<p>Throughout, we let <span class="math inline">\(\mathcal V\)</span>
+denote a vocabulary of tokens, <span class="math inline">\(|\mathcal
+V|\)</span> the vocabulary size, and <span
+class="math inline">\(L\)</span> the sequence length. We will identify
+elements in <span class="math inline">\(\mathcal{V}\)</span> with the
+natural numbers: <span class="math inline">\(\{1, \ldots,
+|\mathcal{V}|\}\)</span>. A (clean) sequence <span
+class="math inline">\(X\sim p\)</span>, where <span
+class="math inline">\(p\)</span> denotes our data distribution, is
+written as <span class="math inline">\(X=(X^1,\ldots,X^L)\in\mathcal
+V^L\)</span>. We use <span class="math inline">\(s\in[0,1]\)</span> for
+the masking probability and <span
+class="math inline">\(t\in[0,1]\)</span> for the continuous noising
+time.</p>
+<h2 id="sub:mdm"><span class="secno">2.1</span> Masked Diffusion Models</h2>
+<p><em>Masked Diffusion Models</em> (MDMs) construct a
+non-autoregressive generative model for <span
+class="math inline">\(p\)</span> by introducing a special <em>mask</em>
+token <code>[MASK]</code> to the vocabulary <span
+class="math inline">\(\mathcal{V}\)</span> and defining a
+continuous-time Markov chain (CTMC) <span class="citation"
+data-cites="del2017stochastic">(Del Moral and Penev 2017)</span>
+transporting <span class="math inline">\(p\)</span> to the Dirac measure
+on fully masked sequences. The forward process <span
+class="math inline">\(X_s \sim p_{s|0}(X_s| X)\)</span> of the CTMC at
+the masking probability <span class="math inline">\(s\in[0, 1]\)</span>
+and <span class="math inline">\(X\sim p\)</span> is given by the
+following sampling procedure: <span id="eq:mdm_forward" class="math display">\[\label{eq:mdm_forward}
+    X_s^\ell  =
+    \begin{cases}
+        X^\ell, &amp; \text{ if }B^\ell=0,\\
+        \texttt{[MASK]}, &amp; \text{ if } B^\ell=1,
+    \end{cases}
+    \qquad
+    \text{ where }
+B^\ell\stackrel{\mathrm{i.i.d.}}{\sim}\operatorname{Bernoulli}(s).\]</span>
+We let <span class="math inline">\(\mathcal M_s = \{\ell: X_s^\ell
+=  \texttt{[MASK]}\}\)</span> denote the positions of mask tokens in
+<span class="math inline">\(X_s\)</span> and <span
+class="math inline">\(\mathcal U_s = \{\ell: X_s^\ell
+\ne\texttt{[MASK]}\}\)</span> the positions of clean tokens in <span
+class="math inline">\(X_s\)</span>.</p>
+<p>We can generate approximate samples from <span
+class="math inline">\(p\)</span> by simulating the backward process of
+the CTMC. This involves gradually unmasking tokens to reveal clean
+tokens which are then fixed for later steps. This relies on access to
+the ground-truth factorised posterior <span
+class="math inline">\(p_{\text{data}}^\ell(X^\ell|X_s^{\mathcal
+U_s})\)</span> of clean tokens given unmasked tokens <span
+class="citation" data-cites="zheng2024masked ou2025your">(K. Zheng et
+al. 2024; Ou et al. 2025)</span> where <span
+class="math inline">\(X_s^{\mathcal{U}_s}\)</span> denotes the
+subcollection of <span class="math inline">\(X_s\)</span> consisting of
+clean tokens. This can be learned from data via the following
+likelihood-based objective: <span id="eq:mdm_loss" class="math display">\[\label{eq:mdm_loss}
+    \mathcal L_{\mathrm{MDM}}(\theta)
+    =
+    \mathbb E_{X\sim p, X_s \sim p_{s|0}(\cdot|X), s\sim U(0, 1)}
+    \left[
+        \frac{1}{s}
+        \sum_{\ell\in \mathcal M_s}
+        -\log p_\theta^\ell(X^\ell\mid X_s^{\mathcal U_s})
+    \right],\]</span> where we parametrise <span
+class="math inline">\(p_\theta^\ell\)</span> with a neural network to
+approximate <span class="math inline">\(p_\text{data}^\ell\)</span> and
+<span class="math inline">\(U(0, 1)\)</span> denotes the uniform
+distribution over <span class="math inline">\([0,1]\)</span>.</p>
+<p>During inference, MDMs can unmask multiple tokens in parallel in a
+single step. This is most effective when the tokens to be unmasked are
+close to conditionally independent given the current masked state, due
+to the factorised structure of <span
+class="math inline">\(p_\theta^\ell\)</span>. However, this is only
+typically true for a small subset of tokens as increasing the number of
+tokens to be unmasked increases the likelihood of strong dependencies
+between tokens. As a result, MDMs still require many refinement steps
+for high quality samples despite their parallel decoding structure.</p>
+<h2 id="sub:flm"><span class="secno">2.2</span> Flow Language Models</h2>
+<p>We consider the <em>LangFlow</em> <span class="citation"
+data-cites="chen2026langflow">(Chen et al. 2026)</span> approach to
+<em>Flow Language Models</em> (FLMs) which operates within a learnt
+embedding space instead of one–hot embeddings.</p>
+<p>Let <span class="math inline">\(H\)</span> be the embedding
+dimension. For each token <span
+class="math inline">\(a\in\mathcal{V}\)</span> in the vocabulary, we
+represent the token with its corresponding embedding vector <span
+class="math inline">\(E_a \in \mathbb{R}^H\)</span> and we let <span
+class="math inline">\(E\in\mathbb R^{|\mathcal V|\times H}\)</span>
+denote the overall embedding matrix. Moreover, for a sequence <span
+class="math inline">\(X\sim p\)</span>, we represent <span
+class="math inline">\(X\)</span> in Euclidean space by the embedding:
+<span class="math display">\[z_1=(E_{X^1},\ldots,E_{X^L})\in\mathbb
+R^{L\times H}.\]</span> With this continuous representation <span
+class="math inline">\(z_1\)</span> of discrete sequences, we can
+construct a generative model for <span class="math inline">\(p\)</span>
+by considering the Gaussian–based stochastic interpolant: <span id="eq:flm_interpolant" class="math display">\[\label{eq:flm_interpolant}
+    z_t = t z_1 + (1-t)\epsilon,\]</span> where <span
+class="math inline">\(\epsilon\sim\mathcal N(0, I_{L\times H})\)</span>
+and <span class="math inline">\(t\in[0, 1]\)</span>. We note that <span
+class="math inline">\(z_0\)</span> is Gaussian noise and <span
+class="math inline">\(z_1\)</span> is an embedded sequence from <span
+class="math inline">\(p\)</span>. To sample from the flow induced by
+this stochastic interpolant, we parametrise the denoiser <span
+class="math inline">\(p_\phi\)</span> which approximates the factorised
+posterior over clean tokens: <span
+class="math display">\[p_\phi(\cdot\mid z_t,t)
+    \in\Delta(\mathcal V)^L
+    \subset\mathbb R^{L\times|\mathcal V|}.\]</span> This is trained
+with the following cross-entropy objective: <span id="eq:flm_ce" class="math display">\[\label{eq:flm_ce}
+    \mathcal L_{\mathrm{FLM}}(\phi)
+    =
+    \mathbb E_{t\sim\pi_t, X, \epsilon}
+    \left[
+        \frac{1}{L}
+        \sum_{\ell=1}^L
+        -\log p_\phi^\ell(X^\ell\mid z_t,t)
+    \right],\]</span> where <span class="math inline">\(\pi_t\)</span>
+denotes some distribution over <span class="math inline">\([0,
+1]\)</span>. Although the supervision target <span
+class="math inline">\(X^\ell\)</span> is discrete, the learned denoiser
+induces a continuous endpoint estimate: <span id="eq:embedding_posterior_mean" class="math display">\[\label{eq:embedding_posterior_mean}
+    \widehat z_{1,\phi}(z_t,t)
+    :=
+    P_\phi(z_t,t)E,
+    \qquad \text{ where } \qquad
+    P_\phi(z_t,t)=p_\phi(\cdot\mid z_t,t)
+    \in\mathbb R^{L\times|\mathcal V|},\]</span> and <span
+class="math inline">\(\widehat z_{1,\phi}(z_t,t)\)</span> estimates the
+posterior mean embedding <span class="math inline">\(\mathbb E[z_1\mid
+z_t,t]\)</span>. Additionally, <span class="math inline">\(\widehat
+z_{1,\phi}(z_t,t)\)</span> allows us to estimate the velocity field for
+the flow: <span id="eq:flm_velocity" class="math display">\[\label{eq:flm_velocity}
+    v_\phi(z_t,t)
+    :=
+    \frac{\widehat z_{1,\phi}(z_t,t)-z_t}{1-t},
+    \qquad t&lt;1.\]</span> Therefore, we can generate approximate
+samples from <span class="math inline">\(p\)</span> by integrating the
+ODE: <span class="math display">\[\frac{d}{dt}
+z_t=v_\phi(z_t,t).\]</span> In practice, the ODE is discretized over a
+finite time grid, and the final token sequence is obtained by decoding
+the denoiser probabilities from <span
+class="math inline">\(p_\phi\)</span> in vocabulary space.</p>
+<p>Continuous flows are attractive because they define a joint
+trajectory from noise to clean sequences. This trajectory can be
+distilled into a direct flow map or a consistency-style solver <span
+class="citation" data-cites="song2023consistency boffi2026build">(Song
+et al. 2023; Boffi, Albergo, and Vanden-Eijnden 2026)</span>, reducing
+the number of generation steps. However, an exact one-shot map is an
+overly demanding object for language models—i.e. some problems (such as
+maths or coding) may naturally require iterative reasoning in which
+intermediate commitments are used as context for later decisions.</p>
+<h1 id="masked-language-flow-models"><span class="secno">3</span> Masked Language Flow Models</h1>
+<p>We introduce the core framework of MLFMs in Section <a
+href="#sub:framework" data-reference-type="ref"
+data-reference="sub:framework">3.1</a>. In Section <a
+href="#sub:mdm_to_mlfm" data-reference-type="ref"
+data-reference="sub:mdm_to_mlfm">3.2</a>, we show how pretrained MDMs
+can naturally be adapted to MLFMs, including the architectural changes
+required for this adaptation. Finally, Section <a
+href="#sub:conditional_fine_tuning" data-reference-type="ref"
+data-reference="sub:conditional_fine_tuning">3.3</a> describes how we
+can apply supervised fine-tuning on instruction-response data to MLFMs,
+an aspect that, to the best of our knowledge, has not been explored in
+prior work on FLMs.</p>
+<h2 id="sub:framework"><span class="secno">3.1</span> Framework</h2>
+<p>We retain the use of mask tokens and token embeddings <span
+class="math inline">\(E\)</span> from MDMs and FLMs. We begin by
+defining a forward process <span class="math inline">\(z_{s,t} \in
+\mathbb{R}^{L \times H}\)</span> in Euclidean space. This process is
+parametrised by <span class="math inline">\((s,t) \in [0,1]^2\)</span>
+where <span class="math inline">\(s\)</span> denotes the masking
+probability and <span class="math inline">\(t\)</span> denotes the
+noising time.</p>
+<p>Let <span class="math inline">\(m=E_{\mathtt{[MASK]}}\)</span> denote
+the embedding of the <span
+class="math inline">\(\texttt{[MASK]}\)</span> token. For <span
+class="math inline">\(X\sim p\)</span>, <span class="math inline">\(s
+\sim \pi_s\)</span>, <span class="math inline">\(t \sim \pi_t\)</span>,
+where <span class="math inline">\(\pi_s\)</span>, <span
+class="math inline">\(\pi_t\)</span> are distributions on <span
+class="math inline">\([0,1]\)</span>, we sample a partially masked
+sequence <span class="math inline">\(X_s\sim p_{s|0}(\cdot|X)\)</span>
+as in the MDM forward process <a href="#eq:mdm_forward"
+data-reference-type="eqref"
+data-reference="eq:mdm_forward">(1)</a> and we construct
+<span class="math inline">\(z_{s,t} \in \mathbb{R}^{L\times H}\)</span>
+as follows. For all positions <span
+class="math inline">\(\ell\in\mathcal U_s\)</span> corresponding to
+clean tokens in <span class="math inline">\(X_s\)</span>, we fix <span
+class="math inline">\(z^\ell_{s,t}\)</span> to be the clean embedding:
+<span class="math display">\[z_{s,t}^\ell=E_{X^\ell},
+    \qquad \forall \ell\in\mathcal U_s, \  t\in[0,1].\]</span> For <span
+class="math inline">\(\ell\in\mathcal M_s\)</span>, we construct <span
+class="math inline">\(z_{s,t}^\ell\)</span> via the stochastic
+interpolant formed by the Brownian bridge connecting <span
+class="math inline">\(m\)</span> and <span
+class="math inline">\(E_{X^\ell}\)</span>: <span id="eq:mlfm_forward" class="math display">\[\label{eq:mlfm_forward}
+\begin{aligned}
+    z_{s,t}^\ell\mid X^\ell
+    \sim
+    \mathcal N
+    \Big(
+        (1-t)m+tE_{X^\ell},\quad\!\!\!\!
+        \sigma^2t(1-t)I_H
+    \Big),
+    \qquad \qquad \forall \ell\in\mathcal M_s, \  t\in[0,1],
+\end{aligned}\]</span> where <span
+class="math inline">\(\sigma&gt;0\)</span> is some choice of noise scale
+on masked positions. Since the variance vanishes at both endpoints, we
+see that the stochastic interpolant satisfies <span
+class="math inline">\(z_{s,0}^\ell=m\)</span> and <span
+class="math inline">\(z_{s,1}^\ell=E_{X^\ell}\)</span> almost surely.
+Thus <span class="math inline">\(z_{s,0}\)</span> recovers the embedding
+of the partially masked sequence <span
+class="math inline">\(X_s\)</span> and <span
+class="math inline">\(z_{s,1}\)</span> recovers the embedding of <span
+class="math inline">\(X\)</span>. Additionally, for <span
+class="math inline">\(t\in(0,1)\)</span>, the masked positions are
+modelled as noisy continuous states that provide partial information
+about their underlying clean token embeddings.</p>
+<p>Following the same reasoning as in <span class="citation"
+data-cites="chen2026langflow">(Chen et al. 2026)</span>, we sample from
+the flow induced by this stochastic interpolant by parametrising the
+MLFM denoiser <span class="math inline">\(p_\theta\)</span> to output
+token probabilities from the factorised posterior over clean tokens:
+<span class="math display">\[p_\theta(\cdot\mid z_{s,t},t)
+    \in\Delta(\mathcal V)^L
+    \subset\mathbb R^{L\times|\mathcal V|}.\]</span> This is trained via
+cross-entropy on only <em>masked</em> subsets of tokens: <span id="eq:mlfm_loss" class="math display">\[\label{eq:mlfm_loss}
+    \mathcal L_{\mathrm{MLFM}}(\theta)
+    =
+    \mathbb E_{s,t,X, \epsilon}
+    \left[
+        \frac{1}{|\mathcal M_s|}
+        \sum_{\ell\in\mathcal M_s}
+        -\log p_\theta^\ell(X^\ell\mid z_{s,t},t)
+    \right].\]</span> As in <span class="citation"
+data-cites="chen2026langflow">(Chen et al. 2026)</span>, we find that
+the choice of <span class="math inline">\(\pi_t\)</span> is critical for
+performance. We therefore follow their entropy-based schedule, with a
+small adaptation to our setting. Further details are provided in
+Appendix <a href="#app:gamma_fitting" data-reference-type="ref"
+data-reference="app:gamma_fitting">A</a>, in the context of the
+experimental setup in Section <a href="#sec:experiments"
+data-reference-type="ref" data-reference="sec:experiments">5</a>.</p>
+<p>For sampling, we have that <span
+class="math inline">\(p_\theta\)</span> induces an estimate of the
+posterior mean embedding <span id="eq:mlfm_endpoint_estimate" class="math display">\[\label{eq:mlfm_endpoint_estimate}
+    \widehat z_{1,\theta}(z_{s,t},t)
+    :=
+    P_\theta(z_{s,t},t)E,
+    \qquad
+    P_\theta(z_{s,t},t)
+    =
+    p^\ell_\theta(\cdot\mid z_{s,t},t),\]</span> which can then be used
+to estimate the velocity field of the flow: <span id="eq:mlfm_velocity" class="math display">\[\label{eq:mlfm_velocity}
+    v_\theta^\ell(z_{s,t},t)
+    :=
+    \begin{cases}
+        \displaystyle
+        \frac{
+            \widehat z_{1,\theta}^\ell(z_{s,t},t)-z_{s,t}^\ell
+        }{1-t},
+        &amp; \ell\in\mathcal M_s,\\[1.5ex]
+        0,
+        &amp; \ell\in\mathcal U_s,
+    \end{cases}
+    \qquad t&lt;1.\]</span> With this, we can generate samples by
+integrating the ODE defined by <span
+class="math inline">\(v_\theta\)</span>. This evolves only the masked
+positions, while the positions in <span class="math inline">\(\mathcal
+U_s\)</span> remain clamped to their clean embeddings. Note that the
+incorporation of masks naturally enables <em>conditional</em> generation
+in MLFMs, which has received limited attention in prior work on FLMs.
+Moreover, this additional flexibility allows us to design more advanced
+sampling schemes for MLFMs, as discussed in Section <a
+href="#sec:sampling" data-reference-type="ref"
+data-reference="sec:sampling">4</a>.</p>
+<h2 id="sub:mdm_to_mlfm"><span class="secno">3.2</span> MDMs to MLFMs</h2>
+<p>It is easy to see that we can view the MLFM loss as a continuous
+extension of the MDM loss: at the endpoint <span
+class="math inline">\(t=0\)</span>, every unresolved position <span
+class="math inline">\(\ell \in M_s\)</span> is represented exactly by
+the mask embedding <span class="math inline">\(m\)</span>, while every
+observed position <span class="math inline">\(\ell \in U_s\)</span> is
+kept at its clean embedding. Thus, <span
+class="math inline">\(z_{s,0}\)</span> contains the same information as
+the partially masked sequence <span class="math inline">\(X_s\)</span>.
+Consequently, the cross-entropy objective <span
+class="math inline">\(\mathcal{L}_{\mathrm{MLFM}}\)</span> at <span
+class="math inline">\(t=0\)</span> has the same minimiser as the MDM
+objective <span
+class="math inline">\(\mathcal{L}_{\mathrm{MDM}}\)</span>: in both
+cases, the optimal predictor is the factorised posterior distribution of
+each masked token given the clean tokens. We formalise this endpoint
+equivalence in the following proposition.</p>
+<div id="prop:mask_endpoint_equivalence" class="proposition">
+<p><strong>Proposition 1</strong> (Mask-endpoint equivalence).
+<em>Assume that the unmasked token identities are either provided
+directly or are recoverable from their embeddings under <span
+class="math inline">\(E\)</span>. At the mask endpoint <span
+class="math inline">\(t=0\)</span>, the MLFM prediction problem
+coincides with the MDM prediction problem: for any <span
+class="math inline">\(\ell\in\mathcal M_s\)</span> and <span
+class="math inline">\(a\in\mathcal V\)</span>, <span id="eq:mask_endpoint_equivalence" class="math display">\[\label{eq:mask_endpoint_equivalence}
+    \mathbb P(X^\ell=a\mid z_{s,0})
+    =
+    \mathbb P(X^\ell=a\mid X_s^{\mathcal U_s},\mathcal M_s)
+    =
+    \mathbb P(X^\ell=a\mid X_s).\]</span></em></p>
+<div class="proof">
+<p><em><em>Proof.</em> See Appendix <a
+href="#proof:mask_endpoint_equivalence" data-reference-type="ref"
+data-reference="proof:mask_endpoint_equivalence">E.1</a>. ◻</em></p>
+</div>
+</div>
+<p>This observation motivates adapting pretrained MDMs to MLFMs: because
+a pretrained MDM has already learned the denoising problem at the
+endpoint <span class="math inline">\(z_{s,0}\)</span>, it provides a
+strong initialisation for MLFM training and avoids the cost of training
+a capable MLFM from scratch. Concretely, we adapt a pretrained
+bidirectional-transformer from an MDM for MLFM training by adapting
+three main components in the architecture:</p>
+<ol>
+<li><p>The MDM token embedding layer <span
+class="math inline">\(E\in\mathbb R^{|\mathcal V|\times H}\)</span>,
+which maps tokens into the embedding space, is used as the MLFM
+embedding matrix and is kept fixed during adaptation, similar to <span
+class="citation" data-cites="hu2026elfembeddedlanguageflows">(K. Hu et
+al. 2026)</span>.</p></li>
+<li><p>The MDM transformer blocks initialise the MLFM denoising
+transformer and are frozen. We augment the normalisations in these
+blocks with AdaLN <span class="citation"
+data-cites="nie2025scalingmdm">(Nie, Zhu, Du, et al. 2025)</span> to
+condition on the continuous corruption time <span
+class="math inline">\(t\)</span>, and attach LoRA adapters <span
+class="citation" data-cites="hu2022lora">(E. J. Hu et al. 2022)</span>
+to the linear layers to adapt the pretrained transformer to work with
+continuous corrupted embeddings.</p></li>
+<li><p>The MDM head which maps the final activations to vocabulary
+logits is adapted with its own LoRA adapter.</p></li>
+</ol>
+<p>With these architectural changes, we can continue training the
+pretrained MDM under the MLFM objective <span
+class="math inline">\(\mathcal{L}_\mathrm{MLFM}(\theta)\)</span>,
+thereby adapting it into an MLFM. We refer to this MDM-to-MLFM training
+procedure as <em>adaptation</em> and we provide a summary in Algorithm
+<a href="#alg:mlfm_pretraining_step" data-reference-type="ref"
+data-reference="alg:mlfm_pretraining_step">3</a>.</p>
+<h2 id="sub:conditional_fine_tuning"><span class="secno">3.3</span> Supervised Fine-Tuning</h2>
+<p>In this section, we describe how to perform supervised fine-tuning
+(SFT) with MLFMs. Let <span class="math inline">\(\mathcal
+D_{\mathrm{FT}}=\{(p_i,a_i)\}_{i=1}^n\)</span> denote a SFT dataset,
+where <span class="math inline">\(p_i\)</span> is a prompt and <span
+class="math inline">\(a_i\)</span> is the corresponding target answer.
+After tokenisation, let <span
+class="math inline">\(X=X(p_i,a_i)\)</span> denote the sequence obtained
+from the concatenation of the prompt and answer in a suitable format and
+let <span class="math inline">\(\mathcal P\)</span> denote the positions
+of the prompt and <span class="math inline">\(\mathcal A\)</span> the
+positions of the answer in <span class="math inline">\(X\)</span>. We
+fine-tune our MLFM <span class="math inline">\(p_\theta\)</span> with
+the below cross-entropy objective: <span id="eq:mflm_finetuning_loss" class="math display">\[\label{eq:mflm_finetuning_loss}
+    \mathcal L_{\mathrm{FT}}(\theta)
+    =
+    \mathbb E_{(p,a)\sim\mathcal D_{\mathrm{FT}}, s\sim\pi_s,
+t\sim\pi_t, z_{s,t}}
+    \left[
+        \frac{1}{|\mathcal M_s|}
+        \sum_{\ell\in\mathcal M_s}
+        -\log p_\theta^\ell(X^\ell\mid z_{s,t},t)
+    \right].\]</span> For a sequence <span
+class="math inline">\(X\)</span> constructed from <span
+class="math inline">\((p,a)\)</span>, we form <span
+class="math inline">\(z_{s,t}\)</span> as follows. With probability
+<span class="math inline">\(\alpha\)</span>, we mask all answer
+positions in <span class="math inline">\(\mathcal A\)</span>, and with
+probability <span class="math inline">\(1-\alpha\)</span> we instead
+sample a subset of answer positions by applying <span
+class="math inline">\(p_{s|0}\)</span> only to <span
+class="math inline">\(\mathcal A\)</span>. The prompt positions <span
+class="math inline">\(\mathcal P\)</span> are always kept clean to
+encourage conditional generation from the prompt. After the masked
+positions <span class="math inline">\(\mathcal M_s\)</span> are sampled,
+we apply the same noising process <a href="#eq:mlfm_forward"
+data-reference-type="eqref"
+data-reference="eq:mlfm_forward">(7)</a> at time <span
+class="math inline">\(t\)</span> to these positions. We provide a
+summary of our SFT procedure in Algorithm <a href="#alg:mlfm_sft_step"
+data-reference-type="ref"
+data-reference="alg:mlfm_sft_step">4</a>.</p>
+<h1 id="sec:sampling"><span class="secno">4</span> Sampling from MLFMs</h1>
+<p>In this section, we design a sampling scheme that exploits the
+additional flexibility of MLFMs for conditioning and guidance. The main
+idea behind our sampler is that high-confidence token predictions are
+more useful as clean context than as noisy latent states. In a flow-only
+sampler, each generated position remains latent until the final decoding
+step, even when its posterior distribution has already concentrated on a
+single token. MLFMs can use such positions more effectively: once a
+token becomes highly probable, we <em>promote</em> it to the
+observed-token state, so that later denoising steps condition on its
+clean embedding rather than on a corrupted representation of the same
+position.</p>
+<p>We can naturally combine this strategy with a variant of
+classifier-free guidance <span class="citation"
+data-cites="ho2022classifier">(Ho and Salimans 2022)</span>.
+Specifically, we compare two predicted vector fields: a guided field,
+which conditions on the promoted tokens as clean observed context, and a
+reference field, which uses the same tokens and positions but corrupts
+their embeddings to the current time. The difference between these
+fields isolates the effect of clean context on the model’s predicted
+direction. We then sample from the guided flow while promoting
+high-confidence tokens online, yielding a single sampling procedure that
+combines FLM sampling with MDM-style unmasking.</p>
+<p>We begin by recalling the DDPM sampler in Section <a
+href="#sec:ddpm_sampler" data-reference-type="ref"
+data-reference="sec:ddpm_sampler">4.1</a>, then introduce our variant of
+classifier-free guidance (Section <a href="#sec:cfg"
+data-reference-type="ref" data-reference="sec:cfg">4.2</a>) and online
+promotion strategy (Section <a href="#sub:online_token_promotion"
+data-reference-type="ref"
+data-reference="sub:online_token_promotion">4.3</a>).</p>
+<h2 id="sec:ddpm_sampler"><span class="secno">4.1</span> DDPM Sampler</h2>
+<p>We first describe the standard DDPM sampler <span class="citation"
+data-cites="ho2020denoising">(Ho, Jain, and Abbeel 2020)</span> for
+conditional generation. Let <span class="math inline">\(\mathcal
+U_0\subseteq[L]\)</span> be the unmasked context positions and let <span
+class="math inline">\(\mathcal M_0=[L]\setminus\mathcal U_0\)</span> be
+the masked positions we want to generate. The sampler is initialised at
+the masked endpoint <span class="math inline">\(z_0^\ell\)</span>: <span
+class="math display">\[z_0^\ell
+    =
+    \begin{cases}
+        E_{X^\ell}, &amp; \ell\in\mathcal U_0,\\
+        m, &amp; \ell\in\mathcal M_0 .
+    \end{cases}\]</span> During sampling, the context positions remain
+fixed, so that <span class="math inline">\(z_t^\ell=E_{X^\ell}\)</span>
+for <span class="math inline">\(\ell\in\mathcal U_0\)</span>, while the
+masked positions in <span class="math inline">\(\mathcal M_0\)</span>
+are jointly denoised by simulating the SDE <span
+class="math display">\[d z^\ell_{t}
+    =
+    v^\ell_\theta(z_{s,t},t)\,dt
+    +
+    \sigma\,dW_t^\ell, \quad \ell\in \mathcal{M}_0.\]</span> We
+discretize this process over a mesh <span
+class="math inline">\(0=t_0&lt;t_1&lt;\cdots&lt;t_N=1\)</span>. Between
+<span class="math inline">\(t_i\)</span> and <span
+class="math inline">\(t_{i+1}\)</span>, the process is approximated
+using the DDPM transition <span id="eq:ddpm_step" class="math display">\[\label{eq:ddpm_step}
+    z_{t_{i+1}}^\ell\mid z_{t_i}
+    \sim
+    \mathcal N
+    \left(
+        \frac{1-t_{i+1}}{1-t_i}z_{t_i}^\ell
+        +
+        \frac{t_{i+1}-t_i}{1-t_i}
+        \widehat z_{1}^\ell(z_{t_i},t_i),
+        \,
+        \sigma^2
+        \frac{(t_{i+1}-t_i)(1-t_{i+1})}{1-t_i}
+        I_H
+    \right),\]</span> which samples from the Brownian bridge connecting
+<span class="math inline">\(z_{t_i}\)</span> to the current endpoint
+estimate <span class="math inline">\(\widehat
+z_{1}(z_{t_i},t_i)\)</span>, given by <span
+class="math display">\[\widehat z_{1}(z_{t_i},t_i)
+    =
+    z_{t_i}
+    +
+    (1-t_i)v_\theta(z_{t_i},t_i).\]</span> Finally, at <span
+class="math inline">\(t_N=1\)</span>, each generated position <span
+class="math inline">\(\ell\)</span> is decoded by sampling <span
+class="math inline">\(X^\ell \sim p_\theta^\ell(\cdot\mid
+z_{t_N},t_N)\)</span>, yielding the sample <span
+class="math inline">\(X\)</span>.</p>
+<h2 id="sec:cfg"><span class="secno">4.2</span> Classifier-Free Guidance With Corrupted Context</h2>
+<p>We first describe our variant of classifier-free guidance mentioned
+earlier. Let <span class="math inline">\(z_t\)</span> be the state at
+time <span class="math inline">\(t\)</span>. For <span
+class="math inline">\(\ell\in\mathcal U_0\)</span>, the observed token
+is represented, as before, by its clean embedding,<span
+class="math display">\[z_t^\ell=E_{X^\ell}, \qquad \ell\in\mathcal
+U_0.\]</span> We construct a corrupted-context reference state <span
+class="math inline">\(z_{t,\mathrm{corr}}\)</span> by applying the
+forward corruption marginal in <a href="#eq:mlfm_forward"
+data-reference-type="eqref"
+data-reference="eq:mlfm_forward">(7)</a> only to context
+positions, while leaving all other positions unchanged: <span
+class="math display">\[z_{t,\mathrm{corr}}^\ell = \begin{cases}
+\widetilde z_t^\ell, &amp; \ell\in\mathcal U_0,\\ z_t^\ell, &amp;
+\ell\notin\mathcal U_0 , \end{cases}\]</span> where, for <span
+class="math inline">\(\ell\in\mathcal U_0\)</span>,<span
+class="math display">\[\widetilde z_t^\ell\mid X^\ell \sim \mathcal N
+\Big( (1-t)m+tE_{X^\ell},\quad \sigma^2t(1-t)I_H \Big).\]</span></p>
+<p>Let <span class="math inline">\(v_\theta\)</span> denote the MLFM
+velocity defined in <a href="#eq:mlfm_velocity"
+data-reference-type="eqref"
+data-reference="eq:mlfm_velocity">(10)</a>. We define
+context-corrupted guidance with scale <span
+class="math inline">\(w\)</span> by <span
+class="math display">\[v_w(z_t,t) = v_\theta(z_t,t) + w\bigl(
+v_\theta(z_t,t) - v_\theta(z_{t,\mathrm{corr}},t) \bigr).\]</span> The
+difference term captures the effect of clean context on the predicted
+velocity: both model calls use the same tokens at the same positions,
+but only <span class="math inline">\(v_\theta(z_t,t)\)</span> observes
+the context through exact clean embeddings. In effect, this encourages
+the sampler to follow directions that are specific to the clean-context
+prediction, rather than directions that persist when the context is
+corrupted. Note that both <span class="math inline">\(z_t\)</span> and
+<span class="math inline">\(z_{t,\mathrm{corr}}\)</span> remain on the
+support of the forward process. We refer to this sampling strategy as
+<em>context-corrupted classifier-free guidance</em> (CCFG) and summarise
+it in Algorithm <a href="#alg:corrupted_context_cfg"
+data-reference-type="ref"
+data-reference="alg:corrupted_context_cfg">1</a>.</p>
+<section class="algorithm" id="alg:corrupted_context_cfg" aria-labelledby="alg1-title">
+  <p class="algorithm-title" id="alg1-title"><span>Algorithm 1</span> Context Corrupted Classifier-Free Guidance (CCFG)</p>
+  <p class="algorithm-input"><strong>Require:</strong> State <span class="math inline">\(z_t\)</span>, time <span class="math inline">\(t\)</span>, clean token positions <span class="math inline">\(\mathcal U_0\)</span>, clean tokens <span class="math inline">\(X^{\mathcal U_0}\)</span>, guidance scale <span class="math inline">\(w\)</span>.</p>
+  <ol>
+    <li>Initialize <span class="math inline">\(z_{t,\mathrm{corr}}\leftarrow z_t\)</span>.</li>
+    <li>For each <span class="math inline">\(\ell\in\mathcal U_0\)</span>:
+      <ol>
+        <li>Draw <span class="math inline">\(\widetilde z_t^\ell\mid X^\ell\)</span> from the corruption marginal in (7).</li>
+        <li>Set <span class="math inline">\(z_{t,\mathrm{corr}}^\ell\leftarrow\widetilde z_t^\ell\)</span>.</li>
+      </ol>
+    </li>
+    <li><strong>Return</strong> <span class="math inline">\(v_w=v_\theta(z_t,t)+w\bigl(v_\theta(z_t,t)-v_\theta(z_{t,\mathrm{corr}},t)\bigr)\)</span>.</li>
+  </ol>
+</section>
+
+<h2 id="sub:online_token_promotion"><span class="secno">4.3</span> Online Token Promotion</h2>
+<section class="algorithm" id="alg:flow_guided_unmasking" aria-labelledby="alg2-title">
+  <p class="algorithm-title" id="alg2-title"><span>Algorithm 2</span> CCFG with Online Token Promotion (CCFG w/ OTP)</p>
+  <p class="algorithm-input"><strong>Require:</strong> Prompt tokens <span class="math inline">\(X^{\mathcal U_0}\)</span>, unresolved positions <span class="math inline">\(\mathcal M_0\)</span>, mesh <span class="math inline">\(0=t_0&lt;\cdots&lt;t_N=1\)</span>, guidance scale <span class="math inline">\(w\)</span>, tolerance <span class="math inline">\(\varepsilon\)</span>.</p>
+  <ol>
+    <li>Initialize <span class="math inline">\(z_{t_0}\)</span> with clean embeddings on <span class="math inline">\(\mathcal U_0\)</span> and mask embeddings on <span class="math inline">\(\mathcal M_0\)</span>.</li>
+    <li>For <span class="math inline">\(i=0,\ldots,N-1\)</span>:
+      <ol>
+        <li>Set <span class="math inline">\(\widehat X_i^\ell=\operatorname*{arg\,max}_{a\in\mathcal V}p_\theta^\ell(a\mid z_{t_i},t_i)\)</span> for <span class="math inline">\(\ell\in\mathcal M_i\)</span>.</li>
+        <li>Promote <span class="math inline">\(\mathcal P_i=\{\ell\in\mathcal M_i:p_\theta^\ell(\widehat X_i^\ell\mid z_{t_i},t_i)\ge 1-\epsilon\}\)</span>.</li>
+        <li>For <span class="math inline">\(\ell\in\mathcal P_i\)</span>, set <span class="math inline">\(X^\ell=\widehat X_i^\ell\)</span> and <span class="math inline">\(z_{t_i}^\ell=E_{X^\ell}\)</span>.</li>
+        <li>Set <span class="math inline">\(\mathcal U_{i+1}=\mathcal U_i\cup\mathcal P_i\)</span> and <span class="math inline">\(\mathcal M_{i+1}=\mathcal M_i\setminus\mathcal P_i\)</span>.</li>
+        <li>Compute guided velocity <span class="math inline">\(v_w\)</span> using Algorithm 1.</li>
+        <li>Make one DDPM step (13) on <span class="math inline">\(\mathcal M_{i+1}\)</span> using <span class="math inline">\(v_w\)</span> to obtain <span class="math inline">\(z_{t_{i+1}}\)</span>.</li>
+      </ol>
+    </li>
+    <li>Decode any remaining unresolved positions and <strong>return</strong> <span class="math inline">\(X\)</span>.</li>
+  </ol>
+</section>
+
+<p>The standard DDPM sampler, as well as CCFG, treat the prompt as clean
+context but keep every generated position latent until the final
+decoding step. This can be inefficient as different positions resolve at
+different times: indeed, positions adjacent to the prompt, deterministic
+formatting tokens, and padding tokens in short answers often have
+sharply peaked posteriors well before <span
+class="math inline">\(t=1\)</span>. If such positions remain latent,
+however, later model calls still observe them through corrupted
+representations rather than through the clean embeddings of the
+predicted tokens.</p>
+<p>We therefore <em>promote</em> high-confidence positions online,
+fixing a token to its clean embedding as soon as the model is
+sufficiently confident in it. Formally, let <span
+class="math inline">\(\mathcal{U}_i\)</span> and <span
+class="math inline">\(\mathcal{M}_i=[L]\setminus\mathcal{U}_i\)</span>
+denote the set of unmasked, context and masked positions at step <span
+class="math inline">\(i\)</span>, respectively. For each masked
+position, the posterior <span class="math inline">\(p_\theta(\cdot\mid
+z_{t_i},t_i)\)</span> gives the predicted token <span
+class="math display">\[\widehat X_i^\ell
+    =
+    \operatorname*{arg\,max}_{a\in\mathcal V}
+    p_\theta^\ell(a\mid z_{t_i},t_i),\]</span> and, given a tolerance
+<span class="math inline">\(\varepsilon&gt;0\)</span>, we promote the
+positions <span class="math display">\[\mathcal P_i
+    =
+    \left\{
+        \ell\in\mathcal M_i:
+        p_\theta^\ell(\widehat X_i^\ell\mid z_{t_i},t_i)
+        \ge 1-\varepsilon
+    \right\}.\]</span></p>
+<p>For each <span class="math inline">\(\ell\in\mathcal P_i\)</span> we
+set <span class="math inline">\(X^\ell=\widehat X_i^\ell\)</span> and
+fix <span class="math inline">\(z_{t_i}^\ell=E_{X^\ell}\)</span>. We
+then apply the DDPM transition <a href="#eq:ddpm_step"
+data-reference-type="eqref"
+data-reference="eq:ddpm_step">(13)</a> only to the
+still-masked positions, holding all positions in <span
+class="math inline">\(\mathcal U_i\cup\mathcal P_i\)</span> fixed, and
+update the sets <span class="math inline">\(\mathcal U_i\)</span> and
+<span class="math inline">\(\mathcal M_i\)</span>: <span
+class="math display">\[\mathcal U_{i+1}=\mathcal U_i\cup\mathcal P_i,
+    \qquad
+    \mathcal M_{i+1}=\mathcal M_i\setminus\mathcal P_i .\]</span></p>
+<p>The sampler terminates once <span
+class="math inline">\(t_N=1\)</span> is reached or all positions have
+been promoted. We call this sampling strategy <em>online token
+promotion</em> (OTP) and in practice combine it with CCFG. Algorithm <a
+href="#alg:flow_guided_unmasking" data-reference-type="ref"
+data-reference="alg:flow_guided_unmasking">2</a>
+summarises our full sampling procedure.</p>
+<h3 id="sec:err_online_token_promotion"><span class="secno">4.3.1</span> Error from Online Token
+Promotion</h3>
+<p>We note that OTP can introduce errors into the sampling process by
+promoting tokens too early. Indeed, even when the posterior mode has
+high probability, it may still be incorrect, causing the sampler to fix
+the position to the clean embedding of an incorrect token before
+terminal time. The following result upper bounds the error caused by
+such early promotions.</p>
+<div id="prop:promotion_error" class="proposition">
+<p><strong>Proposition 2</strong> (Promotion Error). <em>Let <span
+class="math inline">\(p\)</span> be the target distribution on <span
+class="math inline">\(\mathcal V^L\)</span>, and assume that each
+denoising samples exactly from <span
+class="math inline">\(p(z_{t_{i+1}}\mid z_{t_i})\)</span>. Let <span
+class="math inline">\(\widetilde p\)</span> be the output law of the
+corresponding sampler that uses the promotion rule above with the true
+posteriors under <span class="math inline">\(p\)</span>, and then
+continues with the same exact denoising dynamics conditioned on promoted
+values. Then <span class="math display">\[\operatorname{TV}(p,\widetilde
+p)\le \varepsilon L .\]</span></em></p>
+<div class="proof">
+<p><em><em>Proof.</em> See Appendix <a href="#proof:promotion_error"
+data-reference-type="ref"
+data-reference="proof:promotion_error">E.2</a>. ◻</em></p>
+</div>
+</div>
+<p>The above results show that the overall accumulated probability of at
+least one incorrect promotion is bounded by <span
+class="math inline">\(\varepsilon L\)</span>. Note that this error does
+not depend on the number of discretization steps, and can be made
+arbitrarily small by taking <span
+class="math inline">\(\epsilon\)</span> small enough.</p>
+<h1 id="sec:experiments"><span class="secno">5</span> Experiments</h1>
+<p>Most prior work on FLMs has evaluated unconditional generation,
+typically using metrics such as generative perplexity and entropy. While
+these metrics measure distributional modelling quality, they do not
+establish whether flow-based language models can serve as useful
+conditional generators in practical settings. We therefore evaluate MLFM
+on more demanding downstream tasks that require mathematical reasoning
+and instruction following. Concretely, we adapt the pretrained SMDM
+model of <span class="citation" data-cites="nie2025scalingmdm">(Nie,
+Zhu, Du, et al. 2025)</span> into an MLFM, following Section <a
+href="#sub:framework" data-reference-type="ref"
+data-reference="sub:framework">3.1</a>, and evaluate it on GSM8K <span
+class="citation" data-cites="cobbe2021gsm8k">(Cobbe et al. 2021)</span>
+and MT-Bench <span class="citation" data-cites="zheng2023judging">(L.
+Zheng et al. 2023)</span>.</p>
+<p>Below, we first describe our experimental setup in Section <a
+href="#sec:general_experimental_setup" data-reference-type="ref"
+data-reference="sec:general_experimental_setup">5.1</a> then present our
+main results and ablations in Sections <a href="#sec:main_results"
+data-reference-type="ref" data-reference="sec:main_results">5.2</a> and
+<a href="#sec:ablations" data-reference-type="ref"
+data-reference="sec:ablations">5.3</a> respectively.</p>
+<h2 id="sec:general_experimental_setup"><span class="secno">5.1</span> Experimental Setup</h2>
+<h3 id="sec:experimental_setup"><span class="secno">5.1.1</span> Adaptation Setup</h3>
+<p>For all of our experiments, we initialise our model from a pretrained
+SMDM with 1028M parameters<a href="#fn1" class="footnote-ref"
+id="fnref1" role="doc-noteref"><sup>1</sup></a>. The pretrained backbone
+and input embedding matrix are kept frozen throughout all training
+stages. We train only a small set of adapters: LoRA adapters on
+attention and MLP modules, an output-head LoRA adapter, and AdaLN
+adapters for time conditioning. The backbone LoRA rank is 256 with <span
+class="math inline">\(\alpha=512\)</span> and dropout 0.05; the
+output-head LoRA rank is 256 with <span
+class="math inline">\(\alpha=256\)</span> and no dropout. The MLP that
+produces the AdaLN time-conditioning parameters has hidden dimension
+512. The total number of trainable parameters in our model is 319M. For
+further details, see Appendix <a href="#app:additional_exp_detials"
+data-reference-type="ref"
+data-reference="app:additional_exp_detials">B</a>.</p>
+<p>We note that aside from <span class="citation"
+data-cites="davis2026scalingcategoricalflowmaps">(Davis et al.
+2026)</span>, who train a 1.7B-parameter categorical flow model at
+trillion-token scale, MLFM is, to the best of our knowledge, the first
+flow-language model at billion-parameter scale.</p>
+<h3 id="sec:adaptation_training"><span class="secno">5.1.2</span> Adaptation Training</h3>
+<p>We train our model on SlimPajama <span class="citation"
+data-cites="cerebras2023slimpajama">(Soboleva et al. 2023)</span>,
+tokenized with the LLaMA-2 tokenizer <span class="citation"
+data-cites="touvron2023llama">(Touvron et al. 2023)</span> using
+sequences of length 1024. We use a training budget of <span
+class="math inline">\(\approx\)</span>100B processed sequence
+positions—this corresponds to 200k optimiser updates with an effective
+batch size of 512 sequences, obtained by accumulating two global batches
+of 256 sequences. We use the AdamW optimiser <span class="citation"
+data-cites="loshchilov2017decoupled">(Loshchilov and Hutter 2017)</span>
+with 3k warmup steps followed by cosine decay to 10% of the peak
+learning rate. The learning rate is <span
+class="math inline">\(10^{-4}\)</span> for the backbone LoRA,
+output-head LoRA, and AdaLN parameters. We apply weight decay of 0.01
+and clip the global gradient norm at 1.0. We also maintain an
+exponential moving average (EMA) of the adapter weights with decay
+0.999, and use these EMA weights for validation.</p>
+<p>Moreover, following <span class="citation"
+data-cites="chen2026langflow">(Chen et al. 2026)</span>, we sample the
+time <span class="math inline">\(t\)</span> in terms of the log
+noise-to-signal ratio (NSR) <span class="math inline">\(\gamma\)</span>
+rather than sampling <span class="math inline">\(t\)</span> directly. We
+sample <span class="math inline">\(\gamma\)</span> from a
+three-component mixture consisting of uniform, normal, and fitted
+generalised-logistic components, with mixture weights <span
+class="math inline">\(0.1/0.2/0.7\)</span> respectively (see Appendix <a
+href="#app:gamma_fitting" data-reference-type="ref"
+data-reference="app:gamma_fitting">A</a> for further details). For our
+distribution <span class="math inline">\(\pi_s\)</span> over masking
+probabilities <span class="math inline">\(s\)</span>, we use the MaskGIT
+cosine schedule <span class="citation"
+data-cites="chang2022maskgit">(Chang et al. 2022)</span> clipped to
+<span class="math inline">\([0.05,1.0]\)</span>. For our bridge <a
+href="#eq:mlfm_forward" data-reference-type="eqref"
+data-reference="eq:mlfm_forward">(7)</a>, we set <span
+class="math inline">\(\sigma=0.2\)</span>. In addition, we use an
+auxiliary embedding loss with weight <span
+class="math inline">\(10\)</span>: from the predicted token
+distribution, we form the corresponding posterior-mean embedding and
+penalise its distance to the clean token embedding. Our adaptation stage
+took approximately three days on 16 NVIDIA GH200 GPUs.</p>
+<h3 id="sec:sft"><span class="secno">5.1.3</span> Supervised Fine-Tuning</h3>
+<p>After the adaptation stage, we further train the adapted MLFM model
+on supervised fine-tuning data consisting of prompt-response pairs. The
+data mixture includes general instruction data from first-turn
+ShareGPT<a href="#fn2" class="footnote-ref" id="fnref2"
+role="doc-noteref"><sup>2</sup></a> examples, mathematical reasoning
+data from NuminaMath-CoT <span class="citation"
+data-cites="numina_math_datasets">(LI et al. 2024)</span>, GSM8K-Aug-NL
+<span class="citation"
+data-cites="cobbe2021gsm8k deng2023implicit">(Cobbe et al. 2021; Deng et
+al. 2023)</span>, and MetaMathQA <span class="citation"
+data-cites="yu2024metamath">(Yu et al. 2024)</span>, and code data from
+OpenCodeInstruct <span class="citation"
+data-cites="ahmad2025opencodeinstruct">(Ahmad et al. 2025)</span>. We
+sample these three groups with weights 0.2, 0.6, and 0.2,
+respectively.</p>
+<p>As discussed in Section <a href="#sub:conditional_fine_tuning"
+data-reference-type="ref"
+data-reference="sub:conditional_fine_tuning">3.3</a>, prompt tokens are
+always kept fixed during supervised fine-tuning and the MLFM objective
+is applied only to response tokens. With probability 0.5, all response
+tokens are masked; otherwise, the response mask ratio is sampled using
+the same MaskGIT cosine schedule as in Section <a
+href="#sec:adaptation_training" data-reference-type="ref"
+data-reference="sec:adaptation_training">5.1.2</a>. We use an SFT budget
+of <span class="math inline">\(\approx\)</span>15B processed sequence
+positions. We use AdamW for 50k optimizer updates, using an effective
+batch size of 512 sequences obtained by accumulating two global batches
+of size 256. We use 3k warmup steps followed by cosine learning-rate
+decay, with peak learning rate <span
+class="math inline">\(5\times10^{-5}\)</span> for the LoRA, output-head
+LoRA, and AdaLN parameters. Our SFT took <span
+class="math inline">\(\approx\)</span>18 hours on 16 NVIDIA GH200
+GPUs.</p>
+<h3 id="sec:datasets"><span class="secno">5.1.4</span> Datasets</h3>
+<p>We evaluate our SFT model on two conditional generation benchmarks:
+GSM8K <span class="citation" data-cites="cobbe2021gsm8k">(Cobbe et al.
+2021)</span> and MT-Bench <span class="citation"
+data-cites="zheng2023judging">(L. Zheng et al. 2023)</span>. GSM8K is a
+benchmark of grade-school mathematical word problems, where each example
+consists of a natural-language question with a numerical answer. We use
+GSM8K to evaluate mathematical reasoning, and measure performance using
+exact-match accuracy after extracting the final numerical answer from
+the model output.</p>
+<p>MT-Bench is an open-ended instruction-following benchmark consisting
+of multi-turn user queries spanning diverse categories <span
+class="citation" data-cites="zheng2023judging">(L. Zheng et al.
+2023)</span>. Following standard practice, model responses are instead
+evaluated by a strong language-model judge, which assigns a scalar score
+reflecting the quality of the answer. In our experiments, we report the
+first-turn MT-Bench score with GPT-4o <span class="citation"
+data-cites="achiam2023gpt">(Achiam et al. 2023)</span> as our judge.</p>
+<p>For both datasets, we prompt the model using the Vicuna prompt
+template <span class="citation" data-cites="vicuna2023">(Chiang et al.
+2023)</span>.</p>
+<h3 id="sec:baselines"><span class="secno">5.1.5</span> Baselines</h3>
+<p>We compare our approach with the 1.1B MDM model of <span
+class="citation" data-cites="nie2025scalingmdm">(Nie, Zhu, Du, et al.
+2025)</span>, which we refer to as SMDM, as well as the AR models
+considered in their work: LLaMA-2 <span class="citation"
+data-cites="touvron2023llama">(Touvron et al. 2023)</span> for GSM8K,
+and their similarly sized AR model for MT-Bench.</p>
+<p>For inference, we follow Algorithm <a
+href="#alg:flow_guided_unmasking" data-reference-type="ref"
+data-reference="alg:flow_guided_unmasking">2</a>
+with <span class="math inline">\(\epsilon=0.05\)</span>. We use a
+maximum sequence length of 512 tokens and 256 sampling steps for GSM8K,
+and 1024 tokens and 128 sampling steps for MT-Bench. Similar to <span
+class="citation" data-cites="nie2025scalingmdm">(Nie, Zhu, Du, et al.
+2025)</span>, we report the results with the best guidance scale <span
+class="math inline">\(w \in \{0, 2, 4, 6\}\)</span> and ablate with
+different <span class="math inline">\(w\)</span> in Section <a
+href="#sec:ablations" data-reference-type="ref"
+data-reference="sec:ablations">5.3</a>.</p>
+<h2 id="sec:main_results"><span class="secno">5.2</span> Main Results</h2>
+<p>Table <a href="#tab:main_results" data-reference-type="ref"
+data-reference="tab:main_results">1</a> shows that MLFM improves
+substantially over both baselines on MT-Bench, achieving a first-turn
+score of <span class="math inline">\(2.27\)</span> compared with <span
+class="math inline">\(1.60\)</span> for SMDM and <span
+class="math inline">\(1.57\)</span> for the similarly sized AR baseline.
+Notably, this gain is obtained with <span
+class="math inline">\(128\)</span> sampling steps, half of the <span
+class="math inline">\(256\)</span> steps used by SMDM. On GSM8K,
+however, MLFM remains significantly behind both LLaMA-2 and SMDM,
+obtaining <span class="math inline">\(31.24\%\)</span> accuracy compared
+with <span class="math inline">\(58.6\%\)</span> and <span
+class="math inline">\(58.5\%\)</span>, respectively. One plausible
+reason is the difference in fine-tuning protocol: the SMDM GSM8K result
+is obtained after task-specific fine-tuning on augmented GSM8K data for
+<span class="math inline">\(40\)</span> epochs, whereas our MLFM is
+fine-tuned on a broader instruction mixture. Nevertheless, these results
+are encouraging: to the best of our knowledge, they provide the first
+evidence that flow-based language models can be scaled beyond
+unconditional generation to downstream reasoning and
+instruction-following tasks. The qualitative examples in Figures <a
+href="#fig:gen-example-mt-bench" data-reference-type="ref"
+data-reference="fig:gen-example-mt-bench">2</a>, <a
+href="#fig:gen-example-gsm8k" data-reference-type="ref"
+data-reference="fig:gen-example-gsm8k">3</a>, provide further evidence
+that MLFM can produce coherent, multi-step responses.</p>
+
+<div id="tab:main_results" class="table-scroll">
+<table>
+<caption>Table 1: Main results on GSM8K and MT-Bench comparing MLFM with SMDM and the AR and LLaMA-2 baselines of <span class="citation">Nie et al. (2025)</span>. SMDM uses 256 sampling steps for both datasets.</caption>
+<thead><tr><th>Approach</th><th>GSM8K<br><small>accuracy% ↑</small></th><th>MT-Bench<br><small>first-turn score ↑</small></th></tr></thead>
+<tbody>
+<tr><td>LLaMA-2 (Touvron et al. 2023)</td><td>58.6</td><td>–</td></tr>
+<tr><td>AR baseline (Nie et al. 2025)</td><td>–</td><td>1.57</td></tr>
+<tr><td>SMDM (Nie et al. 2025)</td><td>58.5</td><td>1.60</td></tr>
+<tr class="highlight"><td>MLFM</td><td>31.24</td><td>2.27</td></tr>
+</tbody></table></div>
+
+<h2 id="sec:ablations"><span class="secno">5.3</span> Ablations</h2>
+
+<figure id="fig:ablations" class="ablation-figure">
+  <div class="figure-group"><h4>MT-Bench</h4><div class="figure-row">
+    <img src="{{ '/assets/img/mlfm/mt_bench_guidance_scale.svg' | relative_url }}" alt="MT-Bench score by guidance scale">
+    <img src="{{ '/assets/img/mlfm/mt_bench_steps.svg' | relative_url }}" alt="MT-Bench score by sampler steps">
+  </div></div>
+  <div class="figure-group"><h4>GSM8K</h4><div class="figure-row">
+    <img src="{{ '/assets/img/mlfm/gsm8k_guidance_scale.svg' | relative_url }}" alt="GSM8K accuracy by guidance scale">
+    <img src="{{ '/assets/img/mlfm/gsm8k_steps.svg' | relative_url }}" alt="GSM8K accuracy by sampler steps">
+  </div></div>
+  <figcaption>Figure 1: MT-Bench and GSM8K results across different guidance scales (left) and sampler steps (right). The plots on the right use the optimal guidance scales given by the corresponding plots on the left.</figcaption>
+</figure>
+
+<p>Here, we study the effect of different guidance scales <span
+class="math inline">\(w\)</span>, different numbers of sampling steps,
+and different sampling strategies.</p>
+<h4 id="different-sampling-strategies.">Different sampling
+strategies.</h4>
+<p>Table <a href="#tab:ablation_sampling" data-reference-type="ref"
+data-reference="tab:ablation_sampling">2</a> shows the GSM8K and
+MT-Bench results across three sampling settings: no guidance (the
+standard DDPM sampler from Section <a href="#sec:ddpm_sampler"
+data-reference-type="ref" data-reference="sec:ddpm_sampler">4.1</a>),
+CCFG (Algorithm <a href="#alg:corrupted_context_cfg"
+data-reference-type="ref"
+data-reference="alg:corrupted_context_cfg">1</a>),
+and CCFG with Online Token Promotion (Algorithm <a
+href="#alg:flow_guided_unmasking" data-reference-type="ref"
+data-reference="alg:flow_guided_unmasking">2</a>).
+On both datasets, we observe that both CCFG and online token promotion
+significantly boost performance. This is not surprising: OTP commits
+high-confidence posterior modes as clean observed tokens, giving later
+denoising steps more reliable context than corrupted continuous
+states.</p>
+
+<div id="tab:ablation_sampling" class="table-scroll">
+<table>
+<caption>Table 2: Results for GSM8K and MT-Bench for different sampling strategies.</caption>
+<thead><tr><th>Sampling</th><th>GSM8K<br><small>accuracy% ↑</small></th><th>MT-Bench<br><small>first-turn score ↑</small></th></tr></thead>
+<tbody>
+<tr><td>No guidance</td><td>13.19</td><td>1.22</td></tr>
+<tr><td>CCFG (Algorithm 1)</td><td>21.38</td><td>1.85</td></tr>
+<tr class="highlight"><td>CCFG w/ OTP (Algorithm 2)</td><td>31.24</td><td>2.27</td></tr>
+</tbody></table></div>
+
+<h4 id="different-guidance-scales.">Different guidance scales.</h4>
+<p>Figure <a href="#fig:ablations" data-reference-type="ref"
+data-reference="fig:ablations">1</a> shows the GSM8K and MT-Bench
+results for different guidance scales. In general, we see that larger
+guidance scales provide the largest gains in performance. This too is
+not surprising, as stronger guidance makes the sampler rely more heavily
+on the clean observed context when resolving the remaining tokens.</p>
+<h4 id="different-numbers-of-sampling-steps.">Different numbers of
+sampling steps.</h4>
+<p>Similarly, Figure <a href="#fig:ablations" data-reference-type="ref"
+data-reference="fig:ablations">1</a> shows the GSM8K and MT-Bench
+results for different numbers of sampling steps. We see that, in
+general, larger numbers of sampling steps provide the largest gains in
+performance. Moreover, we note that MLFM still outperforms the SMDM and
+AR baselines on MT-Bench even at 16 sampling steps.</p>
+<h1 id="sec:conclusion"><span class="secno">6</span> Conclusion</h1>
+<p>In this work, we introduced Masked Language Flow Models which
+integrate masking from Masked Diffusion Models into Flow Language Models
+via a Brownian bridge connecting partially masked sequences with clean
+sequences. This enables exact, any-position conditional generation,
+allowing MLFMs to anchor continuous generation on partially masked
+sequences. Paired with our novel sampler, this facilitates complex,
+multi-step reasoning. Additionally, MLFMs support efficient training
+with a lightweight adaptation of pretrained MDMs. For future work, it is
+interesting to continue scaling MLFMs as well as to investigate the
+distillation of such models.</p>
+<h1 class="unnumbered" id="acknowledgments">Acknowledgments</h1>
+<p>IA, KA and LZ would like to thank Jinwoo Kim and Pete Patterson for
+helpful conversations.</p>
+<p>IA is supported by the Engineering and Physical Sciences Research
+Council [grant number EP/T517811/1]. LZ and KA are supported by the
+EPSRC CDT in Modern Statistics and Statistical Machine Learning
+(EP/S023151/1). This work was supported by the UKRI AI Research Resource
+(AIRR) through Isambard-AI (project AIRR-GW - Diffusion Models for
+Language Modelling) and by an Amazon Research Award awarded to Patrick
+Rebeschini (Fall 2024). SV and PR are funded by UK Research and
+Innovation (UKRI) under the UK government’s Horizon Europe funding
+guarantee [grant number EP/Y028333/1].</p>
+<h1 class="unnumbered" id="references">References</h1><div id="refs" class="references"><p>Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya,
+Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman,
+Shyamal Anadkat, et al. Gpt-4 technical report. <em>arXiv preprint
+arXiv:2303.08774</em>, 2023.</p>
+<p>Wasi Uddin Ahmad, Aleksander Ficek, Mehrzad Samadi, Jocelyn Huang,
+Vahid Noroozi, Somshubra Majumdar, and Boris Ginsburg. Opencodeinstruct:
+A large-scale instruction tuning dataset for code llms. <em>arXiv
+preprint arXiv:2504.04030</em>, 2025.</p>
+<p>Michael Albergo, Nicholas M Boffi, and Eric Vanden-Eijnden.
+Stochastic interpolants: A unifying framework for flows and diffusions.
+<em>Journal of Machine Learning Research</em>, 26 (209): 1–80, 2025.</p>
+<p>Jacob Austin, Daniel D Johnson, Jonathan Ho, Daniel Tarlow, and
+Rianne Van Den Berg. Structured denoising diffusion models in discrete
+state-spaces. <em>Advances in neural information processing
+systems</em>, 34: 17981–17993, 2021.</p>
+<p>Ge Bai, Jie Liu, Xingyuan Bu, Yancheng He, Jiaheng Liu, Zhanhui Zhou,
+Zhuoran Lin, Wenbo Su, Tiezheng Ge, Bo Zheng, et al. Mt-bench-101: A
+fine-grained benchmark for evaluating large language models in
+multi-turn dialogues. <em>arXiv preprint arXiv:2402.14762</em>,
+2024.</p>
+<p>Nicholas Boffi, Michael Albergo, and Eric Vanden-Eijnden. How to
+build a consistency model: Learning flow maps via self-distillation.
+<em>Advances in Neural Information Processing Systems</em>, 38:
+33346–33382, 2026.</p>
+<p>Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared
+Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish
+Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen
+Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel M. Ziegler,
+Jeffrey Wu, Clemens Winter, Christopher Hesse, Mark Chen, Eric Sigler,
+Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher
+Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei.
+Language models are few-shot learners, 2020. URL
+<a href="https://arxiv.org/abs/2005.14165">https://arxiv.org/abs/2005.14165</a>.</p>
+<p>Andrew Campbell, Joe Benton, Valentin De Bortoli, Thomas Rainforth,
+George Deligiannidis, and Arnaud Doucet. A continuous time framework for
+discrete denoising models. <em>Advances in Neural Information Processing
+Systems</em>, 35: 28266–28279, 2022.</p>
+<p>Huiwen Chang, Han Zhang, Lu Jiang, Ce Liu, and William T Freeman.
+Maskgit: Masked generative image transformer. In <em>Proceedings of the
+IEEE/CVF conference on computer vision and pattern recognition</em>,
+pages 11315–11325, 2022.</p>
+<p>Yuxin Chen, Chumeng Liang, Hangke Sui, Ruihan Guo, Chaoran Cheng,
+Jiaxuan You, and Ge Liu. Langflow: Continuous diffusion rivals discrete
+in language modeling. <em>arXiv preprint arXiv:2604.11748</em>,
+2026<span>a</span>.</p>
+<p>Yuxin Chen, Chumeng Liang, Hangke Sui, Ruihan Guo, Chaoran Cheng,
+Jiaxuan You, and Ge Liu. Langflow: Continuous diffusion rivals discrete
+in language modeling, 2026<span>b</span>. URL
+<a href="https://arxiv.org/abs/2604.11748">https://arxiv.org/abs/2604.11748</a>.</p>
+<p>Wei-Lin Chiang, Zhuohan Li, Zi Lin, Ying Sheng, Zhanghao Wu, Hao
+Zhang, Lianmin Zheng, Siyuan Zhuang, Yonghao Zhuang, Joseph E. Gonzalez,
+Ion Stoica, and Eric P. Xing. Vicuna: An open-source chatbot impressing
+gpt-4 with 90%* chatgpt quality, March 2023. URL
+<a href="https://lmsys.org/blog/2023-03-30-vicuna/">https://lmsys.org/blog/2023-03-30-vicuna/</a>.</p>
+<p>Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo
+Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton,
+Reiichiro Nakano, Christopher Hesse, and John Schulman. Training
+verifiers to solve math word problems. <em>arXiv preprint
+arXiv:2110.14168</em>, 2021<span>a</span>.</p>
+<p>Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo
+Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton,
+Reiichiro Nakano, et al. Training verifiers to solve math word problems.
+<em>arXiv preprint arXiv:2110.14168</em>, 2021<span>b</span>.</p>
+<p>Oscar Davis, Anastasiia Filippova, Pierre Ablin, Victor Turrisi,
+Amitis Shidani, Marco Cuturi, and Louis Béthune. Scaling categorical
+flow maps, 2026. URL <a href="https://arxiv.org/abs/2605.07820">https://arxiv.org/abs/2605.07820</a>.</p>
+<p>Pierre Del Moral and Spiridon Penev. <em>Stochastic processes: From
+applications to theory</em>. Chapman and Hall/CRC, 2017.</p>
+<p>Yuntian Deng, Kiran Prasad, Roland Fernandez, Paul Smolensky, Vishrav
+Chaudhary, and Stuart Shieber. Implicit chain of thought reasoning via
+knowledge distillation. <em>arXiv preprint arXiv:2311.01460</em>,
+2023.</p>
+<p>Justin Deschenaux and Caglar Gulcehre. Beyond autoregression: Fast
+llms via self-distillation through time. <em>arXiv preprint
+arXiv:2410.21035</em>, 2024.</p>
+<p>Sander Dieleman. Diffusion language models.
+<a href="https://benanne.github.io/2023/01/09/diffusion-language.html">https://benanne.github.io/2023/01/09/diffusion-language.html</a>,
+2023. Accessed: 2026-01-25.</p>
+<p>Marjan Ghazvininejad, Omer Levy, Yinhan Liu, and Luke Zettlemoyer.
+Mask-predict: Parallel decoding of conditional masked language models.
+In Kentaro Inui, Jing Jiang, Vincent Ng, and Xiaojun Wan, editors,
+<em>Proceedings of the 2019 Conference on Empirical Methods in Natural
+Language Processing and the 9th International Joint Conference on
+Natural Language Processing (EMNLP-IJCNLP)</em>, pages 6112–6121, Hong
+Kong, China, November 2019. Association for Computational Linguistics.
+doi: 10.18653/v1/D19-1633. URL
+<a href="https://aclanthology.org/D19-1633/">https://aclanthology.org/D19-1633/</a>.</p>
+<p>Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi
+Li, Shean Wang, Liang Wang, Weizhu Chen, et al. Lora: Low-rank
+adaptation of large language models. <em>Iclr</em>, 1 (2): 3, 2022.</p>
+<p>Keya Hu, Linlu Qiu, Yiyang Lu, Hanhong Zhao, Tianhong Li, Yoon Kim,
+Jacob Andreas, and Kaiming He. Elf: Embedded language flows, 2026. URL
+<a href="https://arxiv.org/abs/2605.10938">https://arxiv.org/abs/2605.10938</a>.</p>
+<p>Diederik Kingma, Tim Salimans, Ben Poole, and Jonathan Ho.
+Variational diffusion models. <em>Advances in neural information
+processing systems</em>, 34: 21696–21707, 2021.</p>
+<p>Chanhyuk Lee, Jaehoon Yoo, Manan Agarwal, Sheel Shah, Jerry Huang,
+Aditi Raghunathan, Seunghoon Hong, Nicholas M. Boffi, and Jinwoo Kim.
+Flow map language models: One-step language modeling via continuous
+denoising, 2026. URL <a href="https://arxiv.org/abs/2602.16813">https://arxiv.org/abs/2602.16813</a>.</p>
+<p>Jia LI, Edward Beeching, Lewis Tunstall, Ben Lipkin, Roman Soletskyi,
+Shengyi Costa Huang, Kashif Rasul, Longhui Yu, Albert Jiang, Ziju Shen,
+Zihan Qin, Bin Dong, Li Zhou, Yann Fleureau, Guillaume Lample, and
+Stanislas Polu. Numinamath.
+<code>[https://huggingface.co/AI-MO/NuminaMath-CoT](https://github.com/project-numina/aimo-progress-prize/blob/main/report/numina_dataset.pdf)</code>,
+2024.</p>
+<p>Yaron Lipman, Ricky T. Q. Chen, Heli Ben-Hamu, Maximilian Nickel, and
+Matthew Le. Flow matching for generative modeling. In <em>The Eleventh
+International Conference on Learning Representations</em>, 2023. URL
+<a href="https://openreview.net/forum?id=PqvMRDCJT9t">https://openreview.net/forum?id=PqvMRDCJT9t</a>.</p>
+<p>Ilya Loshchilov and Frank Hutter. Decoupled weight decay
+regularization. <em>arXiv preprint arXiv:1711.05101</em>, 2017.</p>
+<p>Alex Lou, Chenlin Meng, and Stefano Ermon. Discrete diffusion
+modeling by estimating the ratios of the data distribution. <em>arXiv
+preprint arXiv:2310.16834</em>, 2024.</p>
+<p>Shengqi Nie, Fenglin Zhu, Chengpeng Du, Tianyu Pang, Qi Liu, Gang
+Zeng, Min Lin, and Chenguang Li. Scaling up masked diffusion models on
+text. <em>arXiv preprint arXiv:2410.18514</em>, 2025<span>a</span>.</p>
+<p>Shengqi Nie, Fenglin Zhu, Zhen You, Xin Zhang, Jing Ou, Jing Hu, Jun
+Zhou, Yichang Lin, Ji-Rong Wen, and Chenguang Li. Large language
+diffusion models. <em>arXiv preprint arXiv:2502.09992</em>,
+2025<span>b</span>.</p>
+<p>Maxwell Nye, Anders Johan Andreassen, Guy Gur-Ari, Henryk
+Michalewski, Jacob Austin, David Bieber, David Dohan, Aitor Lewkowycz,
+Maarten Bosma, David Luan, et al. Show your work: Scratchpads for
+intermediate computation with language models. .</p>
+<p>Jingyang Ou, Shen Nie, Kaiwen Xue, Fengqi Zhu, Jiacheng Sun, Zhenguo
+Li, and Chongxuan Li. Your absorbing discrete diffusion secretly models
+the conditional distributions of clean data. In <em>International
+Conference on Learning Representations</em>, volume 2025, pages
+64972–65009, 2025.</p>
+<p>William Peebles and Saining Xie. Scalable diffusion models with
+transformers. In <em>Proceedings of the IEEE/CVF international
+conference on computer vision</em>, pages 4195–4205, 2023.</p>
+<p>Peter Potaptchik, Jason Yim, Adhi Saravanan, Peter Holderrieth, Eric
+Vanden-Eijnden, and Michael S. Albergo. Discrete flow maps, 2026. URL
+<a href="https://arxiv.org/abs/2604.09784">https://arxiv.org/abs/2604.09784</a>.</p>
+<p>Daan Roos, Oscar Davis, Floor Eijkelboom, Michael Bronstein, Max
+Welling, İsmail İlkan Ceylan, Luca Ambrogioni, and Jan-Willem van de
+Meent. Categorical flow maps, 2026. URL
+<a href="https://arxiv.org/abs/2602.12233">https://arxiv.org/abs/2602.12233</a>.</p>
+<p>Subham Sahoo, Marianne Arriola, Yair Schiff, Aaron Gokaslan, Edgar
+Marroquin, Justin Chiu, Alexander Rush, and Volodymyr Kuleshov. Simple
+and effective masked diffusion language models. <em>Advances in Neural
+Information Processing Systems</em>, 37: 130136–130184, 2024.</p>
+<p>Jiaxin Shi, Kehang Han, Zhe Wang, Arnaud Doucet, and Michalis
+Titsias. Simplified and generalized masked diffusion for discrete data.
+<em>Advances in neural information processing systems</em>, 37:
+103131–103167, 2024.</p>
+<p>Daria Soboleva, Faisal Al-Khateeb, Robert Myers, Jacob R Steeves,
+Joel Hestness, and Nolan Dey. .
+<a href="https://cerebras.ai/blog/slimpajama-a-627b-token-cleaned-and-deduplicated-version-of-redpajama">https://cerebras.ai/blog/slimpajama-a-627b-token-cleaned-and-deduplicated-version-of-redpajama</a>,
+2023. URL
+<a href="https://huggingface.co/datasets/cerebras/SlimPajama-627B">https://huggingface.co/datasets/cerebras/SlimPajama-627B</a>.</p>
+<p>Yang Song, Jascha Sohl-Dickstein, Diederik P Kingma, Abhishek Kumar,
+Stefano Ermon, and Ben Poole. Score-based generative modeling through
+stochastic differential equations. In <em>International Conference on
+Learning Representations</em>, 2021. URL
+<a href="https://openreview.net/forum?id=PxTIG12RRHS">https://openreview.net/forum?id=PxTIG12RRHS</a>.</p>
+<p>Yang Song, Prafulla Dhariwal, Mark Chen, and Ilya Sutskever.
+Consistency models. In <em>International Conference on Machine
+Learning</em>, pages 32211–32252. PMLR, 2023.</p>
+<p>Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad
+Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal
+Bhargava, Shruti Bhosale, et al. Llama 2: Open foundation and fine-tuned
+chat models. <em>arXiv preprint arXiv:2307.09288</em>, 2023.</p>
+<p>Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia,
+Ed Chi, Quoc V Le, Denny Zhou, et al. Chain-of-thought prompting elicits
+reasoning in large language models. <em>Advances in neural information
+processing systems</em>, 35: 24824–24837, 2022.</p>
+<p>Longhui Yu, Weisen Jiang, Han Shi, Jincheng Yu, Zhengying Liu,
+Yu Zhang, James Kwok, Zhenguo Li, Adrian Weller, and Weiyang Liu.
+Metamath: Bootstrap your own mathematical questions for large language
+models. In <em>International Conference on Learning
+Representations</em>, volume 2024, pages 45040–45061, 2024.</p>
+<p>Kaiwen Zheng, Yongxin Chen, Hanzi Mao, Ming-Yu Liu, Jun Zhu, and
+Qinsheng Zhang. Masked diffusion models are secretly time-agnostic
+masked models and exploit inaccurate categorical sampling. <em>arXiv
+preprint arXiv:2409.02908</em>, 2024.</p>
+<p>Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao
+Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric Xing, et al.
+Judging llm-as-a-judge with mt-bench and chatbot arena. <em>Advances in
+neural information processing systems</em>, 36: 46595–46623, 2023.</p></div>
+
+<h1 class="unnumbered" id="appendix-contents">Appendix Contents</h1>
+<nav class="appendix-toc" aria-label="Appendix contents"><ol>
+  <li><a href="#app:gamma_fitting"><span>A</span> Gamma Schedule and Fitting</a></li>
+  <li><a href="#app:additional_exp_detials"><span>B</span> Additional Experimental Details</a></li>
+  <li><a href="#app:alg_blocks"><span>C</span> Algorithm Blocks</a></li>
+  <li><a href="#app:additional_results"><span>D</span> Additional Results</a></li>
+  <li><a href="#sec:proofs"><span>E</span> Proofs</a></li>
+</ol></nav>
+
+<h1 id="app:gamma_fitting"><span class="secno">A</span> Gamma Schedule and Fitting</h1>
+<p>To sample the bridge time during training, we use an approach similar
+in spirit to LangFlow <span class="citation"
+data-cites="chen2026langflow">(Chen et al. 2026)</span>. Rather than
+sampling <span class="math inline">\(t\)</span> directly, we sample the
+log noise-to-signal ratio <span class="math inline">\(\gamma\)</span>
+induced by the Brownian bridge in <a href="#eq:mlfm_forward"
+data-reference-type="eqref"
+data-reference="eq:mlfm_forward">(7)</a>: <span
+class="math display">\[\gamma
+    =
+    \log\left(\sigma^2\frac{1-t}{t}\right).\]</span> The inverse map is
+<span id="eqn:inverse_nsr" class="math display">\[\label{eqn:inverse_nsr}    
+t = \frac{\sigma^2}{e^\gamma+\sigma^2}.\]</span></p>
+<p>We clip <span class="math inline">\(\gamma\)</span> to <span
+class="math inline">\([\gamma_{\min},\gamma_{\max}]=[-10,6]\)</span> to
+avoid numerically extreme values near the bridge endpoints and to keep
+sampling within the range covered by our empirical observations.</p>
+<p>As in <span class="citation" data-cites="chen2026langflow">(Chen et
+al. 2026)</span>, the main component of our time-sampling distribution
+is fitted from the empirical difficulty of denoising at different noise
+levels. However, we found that using only a fitted component was less
+stable in our setting. We therefore sample <span
+class="math inline">\(\gamma\)</span> from the three-component mixture
+<span class="math display">\[q(\gamma)
+    =
+    0.1\,q_{\mathrm{unif}}(\gamma)
+    +
+    0.2\,q_{\mathrm{norm}}(\gamma)
+    +
+    0.7\,q_{\mathrm{fit}}(\gamma),
+    \qquad
+    \gamma\in[-10,6],\]</span> and then convert <span
+class="math inline">\(\gamma\)</span> to <span
+class="math inline">\(t\)</span> using <a href="#eqn:inverse_nsr"
+data-reference-type="eqref"
+data-reference="eqn:inverse_nsr">(14)</a>. The uniform
+component <span class="math inline">\(q_{\mathrm{unif}}\)</span> is
+supported on <span class="math inline">\([-10,6]\)</span>. The normal
+component <span class="math inline">\(q_{\mathrm{norm}}\)</span> is a
+Gaussian with location <span class="math inline">\(-2.5\)</span> and
+scale <span class="math inline">\(2.0\)</span>, with samples clipped to
+<span class="math inline">\([-10,6]\)</span>; these values were chosen
+from empirical observations of stable training regions.</p>
+<p>The fitted component <span
+class="math inline">\(q_{\mathrm{fit}}\)</span> is constructed from
+cross-entropy diagnostics as a function of <span
+class="math inline">\(\gamma\)</span>. This is the relevant diagnostic
+because the MLFM denoiser is trained with masked-token cross-entropy,
+and the average CE at a fixed noise level measures the remaining
+uncertainty in predicting the clean token. Thus, changes in CE across
+<span class="math inline">\(\gamma\)</span> indicate where the model
+gains information along the bridge.</p>
+<p>Concretely, we bin training examples by <span
+class="math inline">\(\gamma\)</span> and compute the mean masked-token
+CE in each bin. After smoothing, we normalize this CE curve to obtain an
+empirical CDF-like curve on <span
+class="math inline">\([-10,6]\)</span>. We then fit the
+generalized-logistic CDF <span
+class="math display">\[F_{\mathrm{glog}}(\gamma)
+    =
+    \sigma\left(\frac{\gamma-\mu}{b}\right)^a,\]</span> where <span
+class="math inline">\(a&gt;0\)</span> is a shape parameter, <span
+class="math inline">\(\mu\)</span> is a location parameter, <span
+class="math inline">\(b&gt;0\)</span> is a scale parameter, and <span
+class="math inline">\(\sigma(\cdot)\)</span> denotes the logistic
+sigmoid. The corresponding density is <span
+class="math display">\[f_{\mathrm{glog}}(\gamma)
+    =
+    \frac{a}{b}
+    \sigma\left(\frac{\gamma-\mu}{b}\right)^a
+    \left(
+        1-\sigma\left(\frac{\gamma-\mu}{b}\right)
+    \right),\]</span> and we take <span
+class="math inline">\(q_{\mathrm{fit}}=f_{\mathrm{glog}}\)</span>. We
+sample from this component by inverse transform sampling, using the
+quantile function <span class="math display">\[F_{\mathrm{glog}}^{-1}(u)
+    =
+    \mu
+    -
+    b\log\left(u^{-1/a}-1\right),
+    \qquad
+    u\in(0,1).\]</span></p>
+<p>The CE–<span class="math inline">\(\gamma\)</span> summaries are
+updated every 200 batches using exponential smoothing with coefficient
+<span class="math inline">\(0.999\)</span>. We accept a new
+generalized-logistic fit only when its fit quality satisfies <span
+class="math inline">\(R^2\geq 0.95\)</span>; otherwise, we keep the
+previous fitted component. For numerical stability, the fitted scale is
+lower bounded by <span class="math inline">\(0.05\)</span>, and the
+shape parameter is clipped to <span
+class="math inline">\([0.05,20]\)</span>. We also use low-discrepancy
+stratification <span class="citation"
+data-cites="kingma2021variational">(Kingma et al. 2021)</span> for both
+<span class="math inline">\(\gamma\)</span> samples and mask-ratio
+samples within each batch.</p>
+<h1 id="app:additional_exp_detials"><span class="secno">B</span> Additional Experimental Details</h1>
+<p>Here, we provide further details on the experimental setup used in
+Section <a href="#sec:experiments" data-reference-type="ref"
+data-reference="sec:experiments">5</a>. Unless stated otherwise, the
+settings below are shared between the MLFM adaptation and SFT
+phases.</p>
+<h2 id="app:model_adapter_hparams"><span class="secno">B.1</span> Model and Adapter
+Hyperparameters</h2>
+<p>The base MDM model we adapt is the official 1028M-parameter SMDM
+checkpoint<a href="#fn3" class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a> of <span class="citation"
+data-cites="nie2025scalingmdm">(Nie, Zhu, Du, et al. 2025)</span>, which
+uses a Diff-LLaMA architecture and the LLaMA-2 tokenizer <span
+class="citation" data-cites="touvron2023llama">(Touvron et al.
+2023)</span>. The resulting vocabulary size, hidden dimension, and
+number of transformer layers are 32000, 1792, and 20, respectively.</p>
+<p>The pretrained backbone and token embedding matrix are kept frozen.
+We attach LoRA adapters <span class="citation"
+data-cites="hu2022lora">(E. J. Hu et al. 2022)</span> to attention and
+projection modules, and use a separate additive LoRA adapter for the
+output head. The time conditioning is provided by DiT-style AdaLN
+adapters <span class="citation"
+data-cites="peebles2023scalable">(Peebles and Xie 2023)</span>.
+Specifically, we apply AdaLN to the normalisation layers inside each
+transformer block and to the final normalisation layer before the output
+head. We do not apply AdaLN to the token embedding layer or to the
+output-head module.</p>
+<div id="tab:adapter_hparams">
+<table>
+<caption>Adapter hyperparameters.</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Component</th>
+<th style="text-align: center;">Rank / Width</th>
+<th style="text-align: center;"><span
+class="math inline">\(\alpha\)</span></th>
+<th style="text-align: center;">Dropout</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Backbone LoRA</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">0.05</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Output-head LoRA</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AdaLN time embedding</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AdaLN hidden layer</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Our total number of trainable parameters is 319M.</p>
+<h2 id="app:optimization_hparams"><span class="secno">B.2</span> Optimisation Hyperparameters</h2>
+<p>Table <a href="#tab:optimization_hparams" data-reference-type="ref"
+data-reference="tab:optimization_hparams">4</a> lists the optimisation
+settings for the adaptation and SFT phase of our MLFM. We use the AdamW
+optimiser <span class="citation"
+data-cites="loshchilov2017decoupled">(Loshchilov and Hutter 2017)</span>
+with <span class="math inline">\((0.9,0.95)\)</span> for the <span
+class="math inline">\(\beta\)</span> parameters. Weight decay is applied
+only to matrix-valued trainable weights. We exclude bias terms and all
+one-dimensional affine parameters from weight decay, including AdaLN
+scale/shift modulation parameters. Learning rates are linearly warmed up
+and then decayed by a cosine schedule to 10% of their peak value. We
+maintain an adapter-only EMA with decay 0.999 and use EMA weights for
+validation.</p>
+<div id="tab:optimization_hparams">
+<table>
+<caption>Optimisation hyperparameters. We abbreviate learning rate to
+"LR" here.</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Hyperparameter</th>
+<th style="text-align: center;">Adaptation</th>
+<th style="text-align: center;">SFT</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Global batch size</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: center;">256</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Gradient accumulation</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Optimiser steps</td>
+<td style="text-align: center;">200k</td>
+<td style="text-align: center;">50k</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Warmup steps</td>
+<td style="text-align: center;">3k</td>
+<td style="text-align: center;">3k</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">LoRA LR</td>
+<td style="text-align: center;"><span
+class="math inline">\(10^{-4}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(5\times
+10^{-5}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Output-head LoRA LR</td>
+<td style="text-align: center;"><span
+class="math inline">\(10^{-4}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(5\times
+10^{-5}\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AdaLN LR</td>
+<td style="text-align: center;"><span
+class="math inline">\(10^{-4}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(5\times
+10^{-5}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Weight decay</td>
+<td style="text-align: center;">0.01</td>
+<td style="text-align: center;">0.01</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Gradient clipping</td>
+<td style="text-align: center;">1.0</td>
+<td style="text-align: center;">1.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EMA decay</td>
+<td style="text-align: center;">0.999</td>
+<td style="text-align: center;">0.999</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The adaptation stage uses 200k optimiser updates with effective batch
+size 512 and maximum sequence length 1024, corresponding to
+approximately <span class="math inline">\(100\)</span>B processed token
+positions. The SFT stage uses 50k optimiser updates with effective batch
+size 512. The final, realised budget is approximately <span
+class="math inline">\(15\)</span>B processed token positions.</p>
+<h2 id="app:masking_details"><span class="secno">B.3</span> Masking Details</h2>
+<p>We sample the masking probability <span
+class="math inline">\(s\)</span> from a cosine schedule inspired by
+MaskGIT <span class="citation" data-cites="chang2022maskgit">(Chang et
+al. 2022)</span>. Specifically, we draw <span
+class="math inline">\(u\sim\operatorname{Unif}(0,1)\)</span> and set
+<span class="math display">\[s
+    =
+    \rho_{\min}
+    +
+    (\rho_{\max}-\rho_{\min})
+    \cos\!\left(\frac{\pi u}{2}\right),\]</span> with <span
+class="math inline">\(\rho_{\min}=0.05\)</span> and <span
+class="math inline">\(\rho_{\max}=1.0\)</span>. Padding tokens, special
+tokens, and invalid positions are excluded from masking.</p>
+<p>During SFT, masking is restricted to answer tokens: prompt tokens are
+always kept clean. With probability <span
+class="math inline">\(0.5\)</span>, the full answer span is masked.
+Otherwise, the answer-token masking probability is sampled from the same
+cosine schedule.</p>
+<h2 id="app:data_details"><span class="secno">B.4</span> Dataset Details</h2>
+<p>The adaptation stage uses SlimPajama <span class="citation"
+data-cites="cerebras2023slimpajama">(Soboleva et al. 2023)</span>
+tokenised with the LLaMA-2 tokenizer <span class="citation"
+data-cites="touvron2023llama">(Touvron et al. 2023)</span> using
+sequences of length 1024. We use the provided train and validation
+splits. During adaptation, with probability <span
+class="math inline">\(0.01\)</span> all sequences in the batch are
+cropped to a shared random prefix length sampled uniformly from <span
+class="math inline">\(\{1,\ldots,1024\}\)</span>.</p>
+<p>The SFT stage uses a mixture of general instruction, math, and code
+data, with the mixture weights being 0.20, 0.60 and 0.20 respectively.
+The general instruction data come from first-turn ShareGPT<a href="#fn4"
+class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>
+conversations. The math data come from the GSM8K-Aug-NL <span
+class="citation" data-cites="cobbe2021gsm8k deng2023implicit">(Cobbe et
+al. 2021; Deng et al. 2023)</span>, MetaMathQA <span class="citation"
+data-cites="yu2024metamath">(Yu et al. 2024)</span>, and NuminaMath-CoT
+<span class="citation" data-cites="numina_math_datasets">(LI et al.
+2024)</span> datasets with sub-mixture weights 0.60, 0.20 and 0.20
+respectively. The code data come from the short OpenCodeInstruct <span
+class="citation" data-cites="ahmad2025opencodeinstruct">(Ahmad et al.
+2025)</span> split, with the prefix fraction sampled from <span
+class="math inline">\([0.25,0.75]\)</span>. SFT examples are capped at
+1024 tokens, with dynamic cropping to multiples of 64. All SFT sources
+use the chat-style prompt <code>USER:\n{prompt}\nASSISTANT:\n</code>,
+followed by the response and an EOS token. Math targets append a
+separate answer field as <code>### {answer}</code> when available;
+code-instruction examples include sampled unit tests in the prompt when
+available.</p>
+<p>SFT examples are truncated to a maximum length of 1024 tokens and 512
+for MT-Bench and GSM8K respectively. To reduce padding, batches are
+dynamically cropped to sequence lengths that are multiples of 64. All
+SFT datasets use the same Vicuna prompt template <span class="citation"
+data-cites="vicuna2023">(Chiang et al. 2023)</span>,
+<code>USER:\n{prompt}\nASSISTANT:\n</code>, followed by the response and
+an EOS token. For math examples, when a separate final-answer field is
+available, we append it to the target as <code>### {answer}</code>. For
+code-instruction examples, when unit tests are available, we include a
+sampled subset of them in the prompt.</p>
+<h2 id="app:sft_details"><span class="secno">B.5</span> SFT Details</h2>
+<p>The SFT stage is initialised from the EMA-smoothed adapter weights
+obtained after adaptation. We reset the optimizer and learning-rate
+schedule, keep the pretrained backbone and token embeddings frozen, and
+train only the LoRA adapters and AdaLN time-conditioning parameters.</p>
+<p>During SFT, masking and continuous noising are applied only to
+response tokens; prompt tokens are always kept clean and visible. With
+probability 0.5, all response tokens are masked. Otherwise, the response
+mask ratio is sampled from the same MaskGIT cosine schedule used during
+adaptation.</p>
+<p>We also adapt the <span
+class="math inline">\(\gamma\)</span>-sampling distribution during SFT.
+Unlike the adaptation stage, which uses a fitted generalized-logistic
+component, SFT uses an active empirical gamma curve. The SFT sampler
+draws <span class="math display">\[q_{\mathrm{SFT}}(\gamma)
+    =
+    0.1\,q_{\mathrm{unif}}(\gamma)
+    +
+    0.9\,q_{\mathrm{active}}(\gamma),
+    \qquad
+    \gamma\in[-10,6],\]</span> with a normal component <span
+class="math inline">\(\mathcal N(-2.5,2.0^2)\)</span> used as a fallback
+until the active curve is initialized. The active component is estimated
+from the high-mask SFT diagnostics with response mask ratios in <span
+class="math inline">\([0.95,1.0]\)</span>. Because SFT contains many
+easy EOS and padding targets, the diagnostic curve uses response-token
+CE with EOS targets removed. We form an empirical inverse CDF over <span
+class="math inline">\(\gamma\)</span>, smooth it with isotonic
+regression, and represent it with 101 quantile knots, and update the
+active inverse CDF by EMA: <span class="math display">\[Q_{k+1}(u)
+    =
+    (1-\eta)Q_k(u)+\eta\,\widehat Q_k(u),
+    \qquad
+    \eta=0.05 .\]</span> An update is applied only after at least 8
+populated gamma bins and 4096 diagnostic examples are available. <a
+href="#alg:mlfm_sft_step" data-reference-type="ref+label"
+data-reference="alg:mlfm_sft_step">4</a> summarizes
+one SFT learning step.</p>
+<h1 id="app:alg_blocks"><span class="secno">C</span> Algorithm Blocks</h1>
+<p>Algorithms <a href="#alg:mlfm_pretraining_step"
+data-reference-type="ref"
+data-reference="alg:mlfm_pretraining_step">3</a>
+and <a href="#alg:mlfm_sft_step" data-reference-type="ref"
+data-reference="alg:mlfm_sft_step">4</a> summarise the
+corresponding MLFM learning steps for adaptation and supervised
+fine-tuning.</p>
+<section class="algorithm" id="alg:mlfm_pretraining_step" aria-labelledby="alg3-title">
+  <p class="algorithm-title" id="alg3-title"><span>Algorithm 3</span> One MLFM Adaptation Step</p>
+  <p class="algorithm-input"><strong>Require:</strong> Clean-text distribution <span class="math inline">\(\mathcal D\)</span>, model <span class="math inline">\(p_\theta\)</span>, mask distribution <span class="math inline">\(\pi_s\)</span>, corruption-level distribution <span class="math inline">\(\pi_t\)</span>, optimizer.</p>
+  <ol>
+    <li>Draw a minibatch <span class="math inline">\(X\sim\mathcal D\)</span>.</li>
+    <li>Sample a mask pattern <span class="math inline">\(\mathcal M_s\)</span> using <span class="math inline">\(s\sim\pi_s\)</span>, and set <span class="math inline">\(\mathcal U_s=[L]\setminus\mathcal M_s\)</span>.</li>
+    <li>Sample <span class="math inline">\(\gamma\sim\pi_t\)</span> and set <span class="math inline">\(t\)</span> using (14).</li>
+    <li>Construct <span class="math inline">\(z_{s,t}\)</span>: set <span class="math inline">\(z_{s,t}^\ell=E_{X^\ell}\)</span> for <span class="math inline">\(\ell\in\mathcal U_s\)</span>, and sample <span class="math inline">\(z_{s,t}^\ell\mid X^\ell\)</span> from (7) for <span class="math inline">\(\ell\in\mathcal M_s\)</span>.</li>
+    <li>Compute <span class="math display">\[\widehat{\mathcal L}_{\mathrm{MLFM}}=\frac{1}{|\mathcal M_s|}\sum_{\ell\in\mathcal M_s}-\log p_\theta^\ell(X^\ell\mid z_{s,t},t).\]</span></li>
+    <li>Update <span class="math inline">\(\theta\)</span> with one optimizer step on <span class="math inline">\(\widehat{\mathcal L}_{\mathrm{MLFM}}\)</span>.</li>
+    <li>Update <span class="math inline">\(\pi_t\)</span> using the batch diagnostics at <span class="math inline">\(\gamma\)</span>.</li>
+    <li><strong>Return</strong> updated <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\pi_t\)</span>.</li>
+  </ol>
+</section>
+
+<section class="algorithm" id="alg:mlfm_sft_step" aria-labelledby="alg4-title">
+  <p class="algorithm-title" id="alg4-title"><span>Algorithm 4</span> One MLFM Supervised Fine-Tuning Step</p>
+  <p class="algorithm-input"><strong>Require:</strong> Prompt-answer dataset <span class="math inline">\(\mathcal D_{\mathrm{FT}}\)</span>, model <span class="math inline">\(p_\theta\)</span>, response-mask distribution <span class="math inline">\(\pi_s^{\mathrm{FT}}\)</span>, corruption-level distribution <span class="math inline">\(\pi_t\)</span>, optimizer.</p>
+  <ol>
+    <li>Draw a minibatch <span class="math inline">\((p,a)\sim\mathcal D_{\mathrm{FT}}\)</span> and tokenize it as <span class="math inline">\(X=X(p,a)\)</span>.</li>
+    <li>Let <span class="math inline">\(\mathcal P\)</span> be prompt positions and <span class="math inline">\(\mathcal A\)</span> response positions.</li>
+    <li>Sample a nonempty response mask <span class="math inline">\(\mathcal M_s\sim\pi_s^{\mathrm{FT}}(\cdot\mid\mathcal A)\)</span>, and set <span class="math inline">\(\mathcal U_s=[L]\setminus\mathcal M_s\)</span>.</li>
+    <li>Sample <span class="math inline">\(\gamma\sim\pi_t\)</span> and set <span class="math inline">\(t\)</span> using (14).</li>
+    <li>Construct <span class="math inline">\(z_{s,t}\)</span>: keep <span class="math inline">\(\mathcal U_s\)</span> clean, including every prompt position, and sample masked positions from (7).</li>
+    <li>Compute <span class="math display">\[\widehat{\mathcal L}_{\mathrm{FT}}=\frac{1}{|\mathcal M_s|}\sum_{\ell\in\mathcal M_s}-\log p_\theta^\ell(X^\ell\mid z_{s,t},t).\]</span></li>
+    <li>Update <span class="math inline">\(\theta\)</span> with one optimizer step on <span class="math inline">\(\widehat{\mathcal L}_{\mathrm{FT}}\)</span>.</li>
+    <li>Update <span class="math inline">\(\pi_t\)</span> using response-token diagnostics at <span class="math inline">\(\gamma\)</span>.</li>
+    <li><strong>Return</strong> updated <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\pi_t\)</span>.</li>
+  </ol>
+</section>
+
+<h1 id="app:additional_results"><span class="secno">D</span> Additional Results</h1>
+<h2 id="app:samplse_llm"><span class="secno">D.1</span> Samples</h2>
+<p>Figures <a href="#fig:gen-example-mt-bench" data-reference-type="ref"
+data-reference="fig:gen-example-mt-bench">2</a> and <a
+href="#fig:gen-example-gsm8k" data-reference-type="ref"
+data-reference="fig:gen-example-gsm8k">3</a> show two qualitative
+examples of MLFM performing conditional generation on MT-Bench and GSM8K
+respectively. These examples complement our quantitative results by
+demonstrating that MLFM can successfully handle mathematical reasoning
+and instruction-following tasks, which have largely remained outside the
+scope of prior FLM evaluations due to their inability to handle
+conditional generation.</p>
+<figure id="fig:gen-example-mt-bench">
+<div class="genbox">
+<p class="gen-title">MT-Bench</p><p class="gen-label"><strong>Prompt</strong></p><p>Compose an engaging travel blog post about a recent trip to Hawaii, highlighting cultural experiences and must-see attractions.</p><hr>
+<p class="gen-label"><strong>Answer</strong></p>
+<p>As I returned to the tropical state of California, I was struck by
+the incred diversity and beauty of the islands. I arrived in the island
+and met with the people of my country, and I was amazed by the beauty of
+the blue beaches, the lush green plants, and the crystal blue
+waters.</p>
+<p>One of the most famous attractions of Hawaii is the unique natural
+beauty of the island. From the red mountains to the tropical forests,
+the island is a master of natural beauty. The Kilauea’s Palace, which is
+the largest in the United States, serves as a museum of science and
+technology.</p>
+<p>As the sunseted over the island, I was curious about the rich culture
+of the Hawaii. The Duke Palace is the oldest and the largest museum of
+the islands. It is the largest collection of historical and cultural art
+in the world, and it is a stunning destination for tourists.</p>
+<p>As the sunseted in the mountains, I had a fresh perspective on the
+history of Hawaii, a country with a rich history in the Pacific. One of
+the most well-known attractions in the world is the Hualaiian
+Cathedrals, located in the footsteps of the island’s Mau National Park.
+The park is located in the tropical mountains, with a beautiful lana and
+views on the ocean.</p>
+<p>In addition, there was a diverse culture in the island, with
+different customs and traditions. For example, the fire dance is a
+popular dance, and the Hawaii are also interested in the cone dance,
+which is a traditional dance that still maintains in the culture of the
+islands.</p>
+<p>Another place to visit is the Hawaiolian National Zoo. It is the
+largest animal park in the world, where a visitor can see a variety of
+animals from around the world.</p>
+<p>Overall, my trip to Hawaii was a unique experience that cannot be
+beat, with its unique attractions, beautiful natural beauty, and diverse
+cultural experiences. If you are interested in the culture of the
+islands, I would recommend the Hawaii Museum and the Hawaiolian National
+Museum, and if you want to learn more, this assistant is very
+helpful.</p>
+</div>
+<figcaption>Qualitative example of MLFM performing conditional
+generation on MT-Bench.</figcaption>
+</figure>
+<figure id="fig:gen-example-gsm8k">
+<div class="genbox">
+<p class="gen-title">GSM8K</p><p class="gen-label"><strong>Prompt</strong></p><p>In a dance class of 20 students, 20% enrolled in contemporary dance, 25% of the remaining enrolled in jazz dance, and the rest enrolled in hip-hop dance. What percentage of the entire students enrolled in hip-hop dance?</p><hr>
+<p class="gen-label"><strong>Answer</strong></p>
+<p>20% of 20 students is 20*0.2 = 4. The remaining number after
+enrolling in contemporary dance is 20-4 = 16 students. 25% of 16
+students enrolled in jazz dance, which is .25*16 = 4 students. So, the
+number of students who are enrolled in hip-hop dance is 16-4 = 12.
+Therefore, the percentage of students enrolled in hip-hop dance is
+12/20*100 = 60</p>
+</div>
+<figcaption>Qualitative example of MLFM performing conditional
+generation on GSM8K.</figcaption>
+</figure>
+<h1 id="sec:proofs"><span class="secno">E</span> Proofs</h1>
+<h2 id="proof:mask_endpoint_equivalence"><span class="secno">E.1</span> Proof of Proposition <a
+href="#prop:mask_endpoint_equivalence" data-reference-type="ref"
+data-reference="prop:mask_endpoint_equivalence">1</a></h2>
+<div class="proof">
+<p><em>Proof.</em> At <span class="math inline">\(t=0\)</span>, every
+corrupted coordinate is equal to the deterministic mask embedding <span
+class="math inline">\(m\)</span>, while every uncorrupted coordinate is
+equal to its clean embedding <span
+class="math inline">\(E_{X^\ell}\)</span>. Therefore <span
+class="math inline">\(z_{s,0}\)</span> contains exactly the same
+information as the partially masked sequence <span
+class="math inline">\(X_s\)</span>, up to the deterministic embedding
+map. Conditioning on either representation induces the same posterior
+over masked token identities. ◻</p>
+</div>
+<h2 id="proof:promotion_error"><span class="secno">E.2</span> Proof of Proposition <a
+href="#prop:promotion_error" data-reference-type="ref"
+data-reference="prop:promotion_error">2</a></h2>
+<p>Couple <span class="math inline">\(X\sim p\)</span> with the promoted
+sampler. Let <span class="math display">\[E
+=
+\left\{
+    \exists i,\ \exists \ell\in P_i:
+    \widehat X_i^\ell \neq X^\ell
+\right\}\]</span> be the event that some promoted token is wrong. Since
+<span class="math inline">\(P_i\)</span> is <span
+class="math inline">\(\mathcal F_i\)</span>-measurable, <span
+class="math display">\[\begin{aligned}
+\mathbb P(E)
+&amp;\le
+\sum_i \sum_{\ell=1}^L
+\mathbb P\!\left(
+    \ell\in P_i,\,
+    \widehat X_i^\ell \neq X^\ell
+\right)  \\
+&amp;=
+\sum_i \sum_{\ell=1}^L
+\mathbb E\!\left[
+    \mathbf 1_{\{\ell\in P_i\}}
+    \mathbb P\!\left(
+        \widehat X_i^\ell \neq X^\ell
+        \mid \mathcal F_i
+    \right)
+\right]  \\
+&amp;\le
+\varepsilon\,
+\mathbb E\!\left[\sum_i |P_i|\right]
+\le
+\varepsilon L ,
+\end{aligned}\]</span> because each coordinate is promoted at most
+once.</p>
+<p>On <span class="math inline">\(E^c\)</span>, every promoted value
+agrees with the corresponding coordinate of <span
+class="math inline">\(X\)</span>. By exact conditional dynamics and
+exact terminal decoding, the remaining randomness can be coupled so that
+the promoted sampler finishes with output <span
+class="math inline">\(\widetilde X=X\)</span>. Therefore <span
+class="math display">\[\operatorname{TV}(p,\widetilde p)
+    \le
+    \mathbb P(\widetilde X\neq X)
+    \le
+    \mathbb P(E)
+    \le
+    \varepsilon L .\]</span></p>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>More specifically, we use the official SMDM 1028M
+checkpoint, <code>mdm-1028M-3300e18-rsl-0.01-bs-1024.safetensors</code>,
+from the <a href="https://huggingface.co/nieshen/SMDM"
+class="uri">https://huggingface.co/nieshen/SMDM</a> Hugging Face
+repository.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>The dataset can be accessed from <a
+href="https://sharegpt.com/" class="uri">https://sharegpt.com/</a>.<a
+href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>More specifically, we use the official SMDM 1028M
+checkpoint, <code>mdm-1028M-3300e18-rsl-0.01-bs-1024.safetensors</code>,
+from the <a href="https://huggingface.co/nieshen/SMDM"
+class="uri">https://huggingface.co/nieshen/SMDM</a> Hugging Face
+repository.<a href="#fnref3" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>The dataset can be accessed from <a
+href="https://sharegpt.com/" class="uri">https://sharegpt.com/</a>.<a
+href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+</article>
+{:/nomarkdown}
