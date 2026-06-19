@@ -11,7 +11,7 @@ ninja.data = [{
     },
   },{id: "nav-blog",
           title: "Blog",
-          description: "",
+          description: "Masked Language Flow Models",
           section: "Navigation",
           handler: () => {
             window.location.href = "/blog/";
