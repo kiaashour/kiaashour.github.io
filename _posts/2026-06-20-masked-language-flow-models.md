@@ -2,7 +2,7 @@
 layout: default
 title: Masked Language Flow Models
 date: 2026-06-20 00:00:00 +0100
-description: A continuous-flow language model that combines coupled denoising with flexible masked-token conditioning.
+description: Bridging Masked Diffusion Models and Flow Language Models
 permalink: /blog/masked-language-flow-models/
 paper_entry: true
 related_posts: false
@@ -34,6 +34,7 @@ html[data-theme="dark"] .mlfm-paper{--teal:#79bdca;--orange:#ffa044}.mlfm-paper 
   <p class="paper-authors">Iskander Azangulov, Kianoosh Ashouritaklimi<sup>★</sup>, Leo Zhang<sup>★</sup>, Simon Vary, Patrick Rebeschini</p>
   <p class="paper-affiliation">Department of Statistics, University of Oxford &nbsp; · &nbsp; <sup>★</sup>Equal contribution</p>
   <nav class="paper-actions" aria-label="Paper links">
+    <a href="{{ '/pdfs/Masked_Language_Flow_Models.pdf' | relative_url }}">PDF</a>
     <a href="https://github.com/imbirik/mlfm">Code</a>
   </nav>
   <div class="paper-abstract"><span class="abstract-label">Abstract</span><p><em>Masked Diffusion Models</em> (MDMs) promise fast, parallel
