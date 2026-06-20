@@ -27,7 +27,7 @@ ninja.data = [{
         
           title: "Masked Language Flow Models",
         
-        description: "A continuous-flow language model that combines coupled denoising with flexible masked-token conditioning.",
+        description: "Bridging Masked Diffusion Models and Flow Language Models",
         section: "Posts",
         handler: () => {
           
