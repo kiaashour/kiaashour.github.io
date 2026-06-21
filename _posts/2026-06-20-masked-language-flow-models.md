@@ -33,6 +33,10 @@ html[data-theme="dark"] .mlfm-paper{--teal:#79bdca;--orange:#ffa044}.mlfm-paper 
   <div class="paper-rule"></div>
   <p class="paper-authors">Iskander Azangulov, Kianoosh Ashouritaklimi<sup>★</sup>, Leo Zhang<sup>★</sup>, Simon Vary, Patrick Rebeschini</p>
   <p class="paper-affiliation">Department of Statistics, University of Oxford &nbsp; · &nbsp; <sup>★</sup>Equal contribution</p>
+    <nav class="paper-actions" aria-label="Paper links">
+        <a href="{{ '/pdfs/Masked_Language_Flow_Models.pdf' | relative_url }}">PDF</a>
+        <a href="https://github.com/imbirik/mlfm">Code</a>
+    </nav>
   <div class="paper-abstract"><span class="abstract-label">Abstract</span><p><em>Masked Diffusion Models</em> (MDMs) promise fast, parallel
 language generation, but their reverse transition factorises across
 token positions—an approximation that breaks down in the few-step
@@ -53,7 +57,9 @@ continuous denoising with the discrete unmasking of confident tokens to
 better support multi-step reasoning. We evaluate our approach on GSM8K
 and MT-Bench and find, for the first time, that flow-based language
 models can be scaled to solve downstream reasoning and
-instruction-following tasks.</p></div>
+instruction-following tasks.</p>
+<p>Code is available at: <a
+href="https://github.com/imbirik/mlfm">github.com/imbirik/mlfm</a>.</p></div>
     <figure>
         <img src="{{ '/assets/img/mlfm/gsm8k.gif' | relative_url }}" alt="Sample MLFM-generated solution for a question from the GSM8K dataset.">
         <figcaption>Sample MLFM-generated solution for a question from the GSM8K dataset.</figcaption>
