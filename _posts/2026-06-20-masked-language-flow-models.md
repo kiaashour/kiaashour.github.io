@@ -60,6 +60,10 @@ models can be scaled to solve downstream reasoning and
 instruction-following tasks.</p>
 <p>Code is available at: <a
 href="https://github.com/imbirik/mlfm">github.com/imbirik/mlfm</a>.</p></div>
+    <figure>
+        <img src="{{ '/assets/img/mlfm/gsm8k.gif' | relative_url }}" alt="Sample MLFM-generated solution for a question from the GSM8K dataset.">
+        <figcaption>Sample MLFM-generated solution for a question from the GSM8K dataset.</figcaption>
+    </figure>
 </header>
 
 <h1 id="introduction"><span class="secno">1</span> Introduction</h1>
