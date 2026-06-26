@@ -690,7 +690,7 @@ prediction, rather than directions that persist when the context is
 corrupted. Note that both <span class="math inline">\(z_t\)</span> and
 <span class="math inline">\(z_{t,\mathrm{corr}}\)</span> remain on the
 support of the forward process. We refer to this sampling strategy as
-<em>context-corrupted classifier-free guidance</em> (CCFG) and summarise
+<em>Context Corrupted Classifier-Free Guidance</em> (CCFG) and summarise
 it in Algorithm <a href="#alg:corrupted_context_cfg"
 data-reference-type="ref"
 data-reference="alg:corrupted_context_cfg">1</a>.</p>
@@ -775,8 +775,8 @@ class="math display">\[\mathcal U_{i+1}=\mathcal U_i\cup\mathcal P_i,
     \mathcal M_{i+1}=\mathcal M_i\setminus\mathcal P_i .\]</span></p>
 <p>The sampler terminates once <span
 class="math inline">\(t_N=1\)</span> is reached or all positions have
-been promoted. We call this sampling strategy <em>online token
-promotion</em> (OTP) and in practice combine it with CCFG. Algorithm <a
+been promoted. We call this sampling strategy <em>Online Token
+Promotion</em> (OTP) and in practice combine it with CCFG. Algorithm <a
 href="#alg:flow_guided_unmasking" data-reference-type="ref"
 data-reference="alg:flow_guided_unmasking">2</a>
 summarises our full sampling procedure. Additionally, we note that this
@@ -815,13 +815,11 @@ class="math inline">\(\varepsilon L\)</span>. Note that this error does
 not depend on the number of discretization steps, and can be made
 arbitrarily small by taking <span
 class="math inline">\(\epsilon\)</span> small enough.</p>
-<p>As a result, we can view Online Token Promotion as a signal
+<p>As a result, we can view Online Token Promotion as a benign signal
 amplifier, similar to self-conditioning <span class="citation"
-data-cites="chen2023analog">(Chen et al. 2023)</span>. We note that
-this is not available to previous work in hybrid discrete-continuous
-approaches to language modelling <span class="citation"
-data-cites="pynadath2025candi zheng2025continuously zhou2026coevolutionary">(Pynadath
-et al. 2025; Zheng et al. 2025; Zhou et al. 2026)</span>.</p>
+data-cites="chen2023analog">(Chen et al., 2023)</span>, rather than as
+MDM parallel unmasking, whose error depends on the number of steps <span
+class="citation" data-cites="feng2025theoretical">(Feng et al., 2025)</span>.</p>
 <h1 id="sec:experiments"><span class="secno">5</span> Experiments</h1>
 <p>Most prior work on FLMs has evaluated unconditional generation,
 typically using metrics such as generative perplexity and entropy. While
@@ -1178,6 +1176,9 @@ arXiv:2410.21035</em>, 2024.</p>
 <p>Sander Dieleman. Diffusion language models.
 <a href="https://benanne.github.io/2023/01/09/diffusion-language.html">https://benanne.github.io/2023/01/09/diffusion-language.html</a>,
 2023. Accessed: 2026-01-25.</p>
+<p>Guhao Feng, Yihan Geng, Jian Guan, Wei Wu, Liwei Wang, and Di He.
+Theoretical benefit and limitation of diffusion language model, 2025.
+URL <a href="https://arxiv.org/abs/2502.09622">https://arxiv.org/abs/2502.09622</a>.</p>
 <p>Antonio Franca and Alexander Tong. Hacking generative perplexity: Why
 unconditional text evaluation needs distributional metrics. <em>arXiv
 preprint arXiv:2606.08417</em>, 2026.</p>
