@@ -382,6 +382,22 @@ class="math inline">\(X\)</span>. Additionally, for <span
 class="math inline">\(t\in(0,1)\)</span>, the masked positions are
 modelled as noisy continuous states that provide partial information
 about their underlying clean token embeddings.</p>
+<p>This construction is related to recent hybrid discrete-continuous
+diffusion models for language <span class="citation"
+data-cites="pynadath2025candi zheng2025continuously zhou2026coevolutionary">(Pynadath
+et al. 2025; Zheng et al. 2025; Zhou et al. 2026)</span> which also
+combine discrete masking and continuous noising. The aforementioned
+works construct a forward process that masks and noises tokens
+simultaneously with the motivation that continuous noising provides
+additional information to help scaffold the generation of discrete
+tokens. However, in MLFMs, we decouple these components—i.e. for any
+choice of sequence masking, we learn a continuous flow to generate clean
+tokens to fill in the masked tokens. This separation is
+distillation-friendly and enables the flexible inference procedures
+described in Section <a href="#sec:sampling" data-reference-type="ref"
+data-reference="sec:sampling">4</a>, where tokens can be revealed
+adaptively rather than at a fixed rate, as well as our adaptation of
+pretrained MDMs to accelerate training.</p>
 <p>Following the same reasoning as in <span class="citation"
 data-cites="chen2026langflow">(Chen et al. 2026)</span>, we sample from
 the flow induced by this stochastic interpolant by parametrising the
@@ -763,7 +779,10 @@ been promoted. We call this sampling strategy <em>online token
 promotion</em> (OTP) and in practice combine it with CCFG. Algorithm <a
 href="#alg:flow_guided_unmasking" data-reference-type="ref"
 data-reference="alg:flow_guided_unmasking">2</a>
-summarises our full sampling procedure.</p>
+summarises our full sampling procedure. Additionally, we note that this
+sampling procedure can be further accelerated with the use of flow map
+distillation as promotion can be done at any time <span
+class="math inline">\(t\)</span>.</p>
 <h3 id="sec:err_online_token_promotion"><span class="secno">4.3.1</span> Error from Online Token
 Promotion</h3>
 <p>We note that OTP can introduce errors into the sampling process by
@@ -796,11 +815,20 @@ class="math inline">\(\varepsilon L\)</span>. Note that this error does
 not depend on the number of discretization steps, and can be made
 arbitrarily small by taking <span
 class="math inline">\(\epsilon\)</span> small enough.</p>
+<p>As a result, we can view Online Token Promotion as a signal
+amplifier, similar to self-conditioning <span class="citation"
+data-cites="chen2023analog">(Chen et al. 2023)</span>. We note that
+this is not available to previous work in hybrid discrete-continuous
+approaches to language modelling <span class="citation"
+data-cites="pynadath2025candi zheng2025continuously zhou2026coevolutionary">(Pynadath
+et al. 2025; Zheng et al. 2025; Zhou et al. 2026)</span>.</p>
 <h1 id="sec:experiments"><span class="secno">5</span> Experiments</h1>
 <p>Most prior work on FLMs has evaluated unconditional generation,
 typically using metrics such as generative perplexity and entropy. While
-these metrics measure distributional modelling quality, they do not
-establish whether flow-based language models can serve as useful
+these metrics aim to measure distributional modelling quality, they are
+unreliable indicators of actual performance <span class="citation"
+data-cites="franca2026hacking">(Franca and Tong 2026)</span> and they
+do not establish whether flow-based language models can serve as useful
 conditional generators in practical settings. We therefore evaluate MLFM
 on more demanding downstream tasks that require mathematical reasoning
 and instruction following. Concretely, we adapt the pretrained SMDM
@@ -986,7 +1014,7 @@ that MLFM can produce coherent, multi-step responses.</p>
 
 <div id="tab:main_results" class="table-scroll">
 <table>
-<caption>Table 1: Main results on GSM8K and MT-Bench comparing MLFM with SMDM and the AR and LLaMA-2 baselines of <span class="citation">Nie et al. (2025)</span>. SMDM uses 256 sampling steps for both datasets.</caption>
+<caption>Table 1: Main results on GSM8K and MT-Bench comparing MLFM with SMDM and the AR and LLaMA-2 baselines of <span class="citation">Nie et al. (2025)</span>. Note that SMDM uses 256 sampling steps for both datasets.</caption>
 <thead><tr><th>Approach</th><th>GSM8K<br><small>accuracy% ↑</small></th><th>MT-Bench<br><small>first-turn score ↑</small></th></tr></thead>
 <tbody>
 <tr><td>LLaMA-2 (Touvron et al. 2023)</td><td>58.6</td><td>–</td></tr>
@@ -996,18 +1024,6 @@ that MLFM can produce coherent, multi-step responses.</p>
 </tbody></table></div>
 
 <h2 id="sec:ablations"><span class="secno">5.3</span> Ablations</h2>
-
-<figure id="fig:ablations" class="ablation-figure">
-  <div class="figure-group"><h4>MT-Bench</h4><div class="figure-row">
-    <img src="{{ '/assets/img/mlfm/mt_bench_guidance_scale.svg' | relative_url }}" alt="MT-Bench score by guidance scale">
-    <img src="{{ '/assets/img/mlfm/mt_bench_steps.svg' | relative_url }}" alt="MT-Bench score by sampler steps">
-  </div></div>
-  <div class="figure-group"><h4>GSM8K</h4><div class="figure-row">
-    <img src="{{ '/assets/img/mlfm/gsm8k_guidance_scale.svg' | relative_url }}" alt="GSM8K accuracy by guidance scale">
-    <img src="{{ '/assets/img/mlfm/gsm8k_steps.svg' | relative_url }}" alt="GSM8K accuracy by sampler steps">
-  </div></div>
-  <figcaption>Figure 1: MT-Bench and GSM8K results across different guidance scales (left) and sampler steps (right). The plots on the right use the optimal guidance scales given by the corresponding plots on the left.</figcaption>
-</figure>
 
 <p>Here, we study the effect of different guidance scales <span
 class="math inline">\(w\)</span>, different numbers of sampling steps,
@@ -1031,6 +1047,35 @@ high-confidence posterior modes as clean observed tokens, giving later
 denoising steps more reliable context than corrupted continuous
 states.</p>
 
+<h4 id="different-guidance-scales.">Different guidance scales.</h4>
+<p>Figure <a href="#fig:ablations" data-reference-type="ref"
+data-reference="fig:ablations">1</a> shows the GSM8K and MT-Bench
+results for different guidance scales. In general, we see that larger
+guidance scales provide the largest gains in performance. This too is
+not surprising, as stronger guidance makes the sampler rely more heavily
+on the clean observed context when resolving the remaining tokens.</p>
+
+<figure id="fig:ablations" class="ablation-figure">
+  <div class="figure-group"><h4>MT-Bench</h4><div class="figure-row">
+    <img src="{{ '/assets/img/mlfm/mt_bench_guidance_scale.svg' | relative_url }}" alt="MT-Bench score by guidance scale">
+    <img src="{{ '/assets/img/mlfm/mt_bench_steps.svg' | relative_url }}" alt="MT-Bench score by sampler steps">
+  </div></div>
+  <div class="figure-group"><h4>GSM8K</h4><div class="figure-row">
+    <img src="{{ '/assets/img/mlfm/gsm8k_guidance_scale.svg' | relative_url }}" alt="GSM8K accuracy by guidance scale">
+    <img src="{{ '/assets/img/mlfm/gsm8k_steps.svg' | relative_url }}" alt="GSM8K accuracy by sampler steps">
+  </div></div>
+  <figcaption>Figure 1: MT-Bench and GSM8K results across different guidance scales (left) and sampler steps (right). The plots on the right use the optimal guidance scales given by the corresponding plots on the left.</figcaption>
+</figure>
+
+<h4 id="different-numbers-of-sampling-steps.">Different numbers of
+sampling steps.</h4>
+<p>Similarly, Figure <a href="#fig:ablations" data-reference-type="ref"
+data-reference="fig:ablations">1</a> shows the GSM8K and MT-Bench
+results for different numbers of sampling steps. We see that, in
+general, larger numbers of sampling steps provide the largest gains in
+performance. Moreover, we note that MLFM still outperforms the SMDM and
+AR baselines on MT-Bench even at 16 sampling steps.</p>
+
 <div id="tab:ablation_sampling" class="table-scroll">
 <table>
 <caption>Table 2: Results for GSM8K and MT-Bench for different sampling strategies.</caption>
@@ -1041,21 +1086,6 @@ states.</p>
 <tr class="highlight"><td>CCFG w/ OTP (Algorithm 2)</td><td>31.24</td><td>2.27</td></tr>
 </tbody></table></div>
 
-<h4 id="different-guidance-scales.">Different guidance scales.</h4>
-<p>Figure <a href="#fig:ablations" data-reference-type="ref"
-data-reference="fig:ablations">1</a> shows the GSM8K and MT-Bench
-results for different guidance scales. In general, we see that larger
-guidance scales provide the largest gains in performance. This too is
-not surprising, as stronger guidance makes the sampler rely more heavily
-on the clean observed context when resolving the remaining tokens.</p>
-<h4 id="different-numbers-of-sampling-steps.">Different numbers of
-sampling steps.</h4>
-<p>Similarly, Figure <a href="#fig:ablations" data-reference-type="ref"
-data-reference="fig:ablations">1</a> shows the GSM8K and MT-Bench
-results for different numbers of sampling steps. We see that, in
-general, larger numbers of sampling steps provide the largest gains in
-performance. Moreover, we note that MLFM still outperforms the SMDM and
-AR baselines on MT-Bench even at 16 sampling steps.</p>
 <h1 id="sec:conclusion"><span class="secno">6</span> Conclusion</h1>
 <p>In this work, we introduced Masked Language Flow Models which
 integrate masking from Masked Diffusion Models into Flow Language Models
@@ -1065,8 +1095,8 @@ allowing MLFMs to anchor continuous generation on partially masked
 sequences. Paired with our novel sampler, this facilitates complex,
 multi-step reasoning. Additionally, MLFMs support efficient training
 with a lightweight adaptation of pretrained MDMs. For future work, it is
-interesting to continue scaling MLFMs as well as to investigate the
-distillation of such models.</p>
+interesting to continue scaling MLFMs as well as distilling such
+models.</p>
 <h1 class="unnumbered" id="acknowledgments">Acknowledgments</h1>
 <p>IA, KA and LZ would like to thank Jinwoo Kim and Pete Patterson for
 helpful conversations.</p>
@@ -1094,11 +1124,6 @@ Stochastic interpolants: A unifying framework for flows and diffusions.
 Rianne Van Den Berg. Structured denoising diffusion models in discrete
 state-spaces. <em>Advances in neural information processing
 systems</em>, 34: 17981–17993, 2021.</p>
-<p>Ge Bai, Jie Liu, Xingyuan Bu, Yancheng He, Jiaheng Liu, Zhanhui Zhou,
-Zhuoran Lin, Wenbo Su, Tiezheng Ge, Bo Zheng, et al. Mt-bench-101: A
-fine-grained benchmark for evaluating large language models in
-multi-turn dialogues. <em>arXiv preprint arXiv:2402.14762</em>,
-2024.</p>
 <p>Nicholas Boffi, Michael Albergo, and Eric Vanden-Eijnden. How to
 build a consistency model: Learning flow maps via self-distillation.
 <em>Advances in Neural Information Processing Systems</em>, 38:
@@ -1120,14 +1145,14 @@ Systems</em>, 35: 28266–28279, 2022.</p>
 Maskgit: Masked generative image transformer. In <em>Proceedings of the
 IEEE/CVF conference on computer vision and pattern recognition</em>,
 pages 11315–11325, 2022.</p>
+<p>Ting Chen, Ruixiang Zhang, and Geoffrey Hinton. Analog bits:
+Generating discrete data using diffusion models with self-conditioning,
+2023. URL
+<a href="https://arxiv.org/abs/2208.04202">https://arxiv.org/abs/2208.04202</a>.</p>
 <p>Yuxin Chen, Chumeng Liang, Hangke Sui, Ruihan Guo, Chaoran Cheng,
 Jiaxuan You, and Ge Liu. Langflow: Continuous diffusion rivals discrete
 in language modeling. <em>arXiv preprint arXiv:2604.11748</em>,
-2026<span>a</span>.</p>
-<p>Yuxin Chen, Chumeng Liang, Hangke Sui, Ruihan Guo, Chaoran Cheng,
-Jiaxuan You, and Ge Liu. Langflow: Continuous diffusion rivals discrete
-in language modeling, 2026<span>b</span>. URL
-<a href="https://arxiv.org/abs/2604.11748">https://arxiv.org/abs/2604.11748</a>.</p>
+2026.</p>
 <p>Wei-Lin Chiang, Zhuohan Li, Zi Lin, Ying Sheng, Zhanghao Wu, Hao
 Zhang, Lianmin Zheng, Siyuan Zhuang, Yonghao Zhuang, Joseph E. Gonzalez,
 Ion Stoica, and Eric P. Xing. Vicuna: An open-source chatbot impressing
@@ -1137,11 +1162,7 @@ gpt-4 with 90%* chatgpt quality, March 2023. URL
 Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton,
 Reiichiro Nakano, Christopher Hesse, and John Schulman. Training
 verifiers to solve math word problems. <em>arXiv preprint
-arXiv:2110.14168</em>, 2021<span>a</span>.</p>
-<p>Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo
-Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton,
-Reiichiro Nakano, et al. Training verifiers to solve math word problems.
-<em>arXiv preprint arXiv:2110.14168</em>, 2021<span>b</span>.</p>
+arXiv:2110.14168</em>, 2021.</p>
 <p>Oscar Davis, Anastasiia Filippova, Pierre Ablin, Victor Turrisi,
 Amitis Shidani, Marco Cuturi, and Louis Béthune. Scaling categorical
 flow maps, 2026. URL <a href="https://arxiv.org/abs/2605.07820">https://arxiv.org/abs/2605.07820</a>.</p>
@@ -1157,6 +1178,9 @@ arXiv:2410.21035</em>, 2024.</p>
 <p>Sander Dieleman. Diffusion language models.
 <a href="https://benanne.github.io/2023/01/09/diffusion-language.html">https://benanne.github.io/2023/01/09/diffusion-language.html</a>,
 2023. Accessed: 2026-01-25.</p>
+<p>Antonio Franca and Alexander Tong. Hacking generative perplexity: Why
+unconditional text evaluation needs distributional metrics. <em>arXiv
+preprint arXiv:2606.08417</em>, 2026.</p>
 <p>Marjan Ghazvininejad, Omer Levy, Yinhan Liu, and Luke Zettlemoyer.
 Mask-predict: Parallel decoding of conditional masked language models.
 In Kentaro Inui, Jing Jiang, Vincent Ng, and Xiaojun Wan, editors,
@@ -1166,6 +1190,11 @@ Natural Language Processing (EMNLP-IJCNLP)</em>, pages 6112–6121, Hong
 Kong, China, November 2019. Association for Computational Linguistics.
 doi: 10.18653/v1/D19-1633. URL
 <a href="https://aclanthology.org/D19-1633/">https://aclanthology.org/D19-1633/</a>.</p>
+<p>Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance.
+<em>arXiv preprint arXiv:2207.12598</em>, 2022.</p>
+<p>Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion
+probabilistic models. <em>Advances in neural information
+processing systems</em>, 33: 6840–6851, 2020.</p>
 <p>Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi
 Li, Shean Wang, Liang Wang, Weizhu Chen, et al. Lora: Low-rank
 adaptation of large language models. <em>Iclr</em>, 1 (2): 3, 2022.</p>
@@ -1204,7 +1233,7 @@ diffusion models. <em>arXiv preprint arXiv:2502.09992</em>,
 <p>Maxwell Nye, Anders Johan Andreassen, Guy Gur-Ari, Henryk
 Michalewski, Jacob Austin, David Bieber, David Dohan, Aitor Lewkowycz,
 Maarten Bosma, David Luan, et al. Show your work: Scratchpads for
-intermediate computation with language models. .</p>
+intermediate computation with language models. 2021.</p>
 <p>Jingyang Ou, Shen Nie, Kaiwen Xue, Fengqi Zhu, Jiacheng Sun, Zhenguo
 Li, and Chongxuan Li. Your absorbing discrete diffusion secretly models
 the conditional distributions of clean data. In <em>International
@@ -1216,6 +1245,9 @@ conference on computer vision</em>, pages 4195–4205, 2023.</p>
 <p>Peter Potaptchik, Jason Yim, Adhi Saravanan, Peter Holderrieth, Eric
 Vanden-Eijnden, and Michael S. Albergo. Discrete flow maps, 2026. URL
 <a href="https://arxiv.org/abs/2604.09784">https://arxiv.org/abs/2604.09784</a>.</p>
+<p>Patrick Pynadath, Jiaxin Shi, and Ruqi Zhang. Candi: Hybrid
+discrete-continuous diffusion models. <em>arXiv preprint
+arXiv:2510.22510</em>, 2025.</p>
 <p>Daan Roos, Oscar Davis, Floor Eijkelboom, Michael Bronstein, Max
 Welling, İsmail İlkan Ceylan, Luca Ambrogioni, and Jan-Willem van de
 Meent. Categorical flow maps, 2026. URL
@@ -1229,7 +1261,8 @@ Titsias. Simplified and generalized masked diffusion for discrete data.
 <em>Advances in neural information processing systems</em>, 37:
 103131–103167, 2024.</p>
 <p>Daria Soboleva, Faisal Al-Khateeb, Robert Myers, Jacob R Steeves,
-Joel Hestness, and Nolan Dey. .
+Joel Hestness, and Nolan Dey. SlimPajama: A 627B token cleaned and
+deduplicated version of RedPajama.
 <a href="https://cerebras.ai/blog/slimpajama-a-627b-token-cleaned-and-deduplicated-version-of-redpajama">https://cerebras.ai/blog/slimpajama-a-627b-token-cleaned-and-deduplicated-version-of-redpajama</a>,
 2023. URL
 <a href="https://huggingface.co/datasets/cerebras/SlimPajama-627B">https://huggingface.co/datasets/cerebras/SlimPajama-627B</a>.</p>
@@ -1254,6 +1287,10 @@ Yu Zhang, James Kwok, Zhenguo Li, Adrian Weller, and Weiyang Liu.
 Metamath: Bootstrap your own mathematical questions for large language
 models. In <em>International Conference on Learning
 Representations</em>, volume 2024, pages 45040–45061, 2024.</p>
+<p>Huangjie Zheng, Shansan Gong, Ruixiang Zhang, Tianrong Chen, Jiatao
+Gu, Mingyuan Zhou, Navdeep Jaitly, and Yizhe Zhang. Continuously
+augmented discrete diffusion model for categorical generative modeling.
+<em>arXiv preprint arXiv:2510.01329</em>, 2025.</p>
 <p>Kaiwen Zheng, Yongxin Chen, Hanzi Mao, Ming-Yu Liu, Jun Zhu, and
 Qinsheng Zhang. Masked diffusion models are secretly time-agnostic
 masked models and exploit inaccurate categorical sampling. <em>arXiv
@@ -1261,7 +1298,12 @@ preprint arXiv:2409.02908</em>, 2024.</p>
 <p>Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao
 Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric Xing, et al.
 Judging llm-as-a-judge with mt-bench and chatbot arena. <em>Advances in
-neural information processing systems</em>, 36: 46595–46623, 2023.</p></div>
+neural information processing systems</em>, 36: 46595–46623, 2023.</p>
+<p>Cai Zhou, Chenxiao Yang, Yi Hu, Chenyu Wang, Chubin Zhang, Muhan
+Zhang, Lester Mackey, Tommi Jaakkola, Stephen Bates, and Dinghuai Zhang.
+Coevolutionary continuous discrete diffusion: Make your diffusion
+language model a latent reasoner, 2026. URL
+<a href="https://arxiv.org/abs/2510.03206">https://arxiv.org/abs/2510.03206</a>.</p></div>
 
 <h1 class="unnumbered" id="appendix-contents">Appendix Contents</h1>
 <nav class="appendix-toc" aria-label="Appendix contents"><ol>
@@ -1597,11 +1639,14 @@ response tokens; prompt tokens are always kept clean and visible. With
 probability 0.5, all response tokens are masked. Otherwise, the response
 mask ratio is sampled from the same MaskGIT cosine schedule used during
 adaptation.</p>
-<p>We also adapt the <span
-class="math inline">\(\gamma\)</span>-sampling distribution during SFT.
-Unlike the adaptation stage, which uses a fitted generalized-logistic
-component, SFT uses an active empirical gamma curve. The SFT sampler
-draws <span class="math display">\[q_{\mathrm{SFT}}(\gamma)
+<p>Additionally, we also alter the <span
+class="math inline">\(\gamma\)</span>-sampling distribution during SFT
+as we find that the approach for <span
+class="math inline">\(\gamma\)</span> used during adaptation does not
+work as well for SFT due to the shift in the learning objective. In
+particular, unlike the adaptation stage, which uses a fitted
+generalized-logistic component, SFT uses an active empirical gamma
+curve. The SFT sampler draws <span class="math display">\[q_{\mathrm{SFT}}(\gamma)
     =
     0.1\,q_{\mathrm{unif}}(\gamma)
     +
