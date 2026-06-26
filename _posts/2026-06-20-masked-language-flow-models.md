@@ -781,7 +781,7 @@ href="#alg:flow_guided_unmasking" data-reference-type="ref"
 data-reference="alg:flow_guided_unmasking">2</a>
 summarises our full sampling procedure. Additionally, we note that this
 sampling procedure can be further accelerated with the use of flow map
-distillation as promotion can be done at any time <span
+distillation, as promotion can be done at any time <span
 class="math inline">\(t\)</span>.</p>
 <h3 id="sec:err_online_token_promotion"><span class="secno">4.3.1</span> Error from Online Token
 Promotion</h3>
@@ -817,7 +817,7 @@ arbitrarily small by taking <span
 class="math inline">\(\epsilon\)</span> small enough.</p>
 <p>As a result, we can view Online Token Promotion as a benign signal
 amplifier, similar to self-conditioning <span class="citation"
-data-cites="chen2023analog">(Chen et al., 2023)</span>, rather than as
+data-cites="chen2023analog">(Chen et al., 2023)</span>, rather than
 MDM parallel unmasking, whose error depends on the number of steps <span
 class="citation" data-cites="feng2025theoretical">(Feng et al., 2025)</span>.</p>
 <h1 id="sec:experiments"><span class="secno">5</span> Experiments</h1>
