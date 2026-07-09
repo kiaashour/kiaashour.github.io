@@ -9,8 +9,8 @@ ninja.data = [{
     handler: () => {
       window.location.href = "/";
     },
-  },{id: "nav-blog",
-          title: "Blog",
+  },{id: "nav-writings",
+          title: "Writings",
           description: "Research notes and articles by Kia Ashouritaklimi",
           section: "Navigation",
           handler: () => {
@@ -23,7 +23,18 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/Publications/";
           },
-        },{id: "post-masked-language-flow-models",
+        },{id: "post-prediction-powered-active-testing",
+        
+          title: "Prediction-Powered Active Testing",
+        
+        description: "Improving active testing with black-box predictions.",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/pdfs/Prediction__Powered_Active_Testing.pdf";
+          
+        },
+      },{id: "post-masked-language-flow-models",
         
           title: "Masked Language Flow Models",
         
