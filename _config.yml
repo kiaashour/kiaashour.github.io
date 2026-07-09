@@ -81,7 +81,7 @@ bing_site_verification: # out your bing-site-verification ID (Bing Webmaster)
 # Blog
 # -----------------------------------------------------------------------------
 
-blog_name: "Kia's Blog" # blog_name will be displayed in your blog page
+blog_name: "Writings" # blog_name will be displayed in your blog page
 blog_description: "<div style='text-align:center'><em>Paper reviews, thoughts and notes on recent readings</em></div>"
 permalink: /blog/:year/:title/
 lsi: false # produce an index for related posts

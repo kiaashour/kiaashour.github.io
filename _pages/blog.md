@@ -1,7 +1,7 @@
 ---
 layout: default
 permalink: /blog/
-title: Blog
+title: Writings
 nav: true
 nav_order: 1
 description: Research notes and articles by Kia Ashouritaklimi
@@ -18,7 +18,13 @@ description: Research notes and articles by Kia Ashouritaklimi
     {% for post in paper_posts %}
       <li>
         <h3>
-          <a class="post-title" href="{{ post.url | relative_url }}">{{ post.title }}</a>
+          {% if post.redirect == blank %}
+            <a class="post-title" href="{{ post.url | relative_url }}">{{ post.title }}</a>
+          {% elsif post.redirect contains '://' %}
+            <a class="post-title" href="{{ post.redirect }}" target="_blank">{{ post.title }}</a>
+          {% else %}
+            <a class="post-title" href="{{ post.redirect | relative_url }}">{{ post.title }}</a>
+          {% endif %}
         </h3>
         <p class="post-meta">{{ post.date | date: '%B %-d, %Y' }}</p>
         {% if post.description %}<p>{{ post.description }}</p>{% endif %}
