@@ -2,7 +2,7 @@
 layout: default
 title: Masked Language Flow Models
 date: 2026-06-20 00:00:00 +0100
-description: Bridging Masked Diffusion Models and Flow Language Models
+description: Bridging masked diffusion models and flow language models
 permalink: /blog/masked-language-flow-models/
 paper_entry: true
 related_posts: false
