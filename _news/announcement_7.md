@@ -1,8 +1,8 @@
 ---
 layout: post
-date: 2026
+date: 2026-05-01 00:00:00-0000
 inline: true
 related_posts: false
 ---
 
-Check out our new work "Masked Language Flow Models" on [arXiV](https://arxiv.org/pdf/2606.27617).
+Our paper "Variance-Tilted Diffusion Models for Diverse Sampling" was accepted at the [Structured Probabilistic Inference and Generative Modeling Workshop at ICML 2026](https://openreview.net/forum?id=PoNfh0pCUe).
